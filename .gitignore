@@ -52,8 +52,10 @@ stamp-h?
 .libs/
 *.l[ao]
 *~
+config.*
 
 ## Project specific
 Android/obj
 Android/libs
 thirdparty/
+source/optar.hpp.in

@@ -15,7 +15,7 @@ AC_PREFIX_DEFAULT([/usr/local])
 AC_CONFIG_FILES([Makefile])
 
 AC_CONFIG_SRCDIR([source/optar.cpp])
-AC_CONFIG_HEADERS([source/optar.hpp])
+AC_CONFIG_HEADERS([source/config.hpp])
 
 AC_PROG_CXX
 AC_PROG_CC
@@ -26,6 +26,15 @@ AC_CHECK_PROGS([TAR], [tar])
 
 ###############################
 # Check for opencv
+AC_CHECK_HEADERS([opencv2/opencv.hpp],
+    [AC_CHECK_LIB([opencv], [CV_VERSION])],
+    [
+    PKG_CHECK_MODULES([OPENCV],
+        [opencv4],
+        ,
+        [AC_MSG_FAILURE([can't find OpenCV])]
+        )
+    ])
 
 ###############################
 # Check for <NTP client>
