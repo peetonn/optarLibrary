@@ -49,14 +49,17 @@ namespace optar {
 #define OLOG_WARN
 #define OLOG_ERROR
 
+#include <cstdlib>
+#include <string>
+
 namespace optar {
     namespace helpers {
         typedef void logger;
     }
 
-    void newLogger(std::string loggerName) {}
-    std::shared_ptr<helpers::logger> getLogger(std::string loggerName) { return std::shared_ptr<helpers::logger>(); }
-    void flushLogger(std::string loggerName) {}
+    void newLogger(std::string loggerName);
+    std::shared_ptr<helpers::logger> getLogger(std::string loggerName);
+    void flushLogger(std::string loggerName);
 }
 
 #endif

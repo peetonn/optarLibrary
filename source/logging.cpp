@@ -6,6 +6,8 @@
 //
 #include "logging.hpp"
 
+#if HAVE_SPDLOG
+
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -90,3 +92,14 @@ void flushLogger(std::string loggerName)
 {
     spdlog::get(loggerName)->flush();
 }
+
+#else
+
+using namespace optar;
+
+void newLogger(std::string loggerName) {}
+std::shared_ptr<helpers::logger> getLogger(std::string loggerName) { return std::shared_ptr<helpers::logger>(); }
+void flushLogger(std::string loggerName) {}
+
+
+#endif
