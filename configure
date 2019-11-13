@@ -637,6 +637,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+HAVE_DOCOPT_FALSE
+HAVE_DOCOPT_TRUE
 HAVE_SPDLOG_FALSE
 HAVE_SPDLOG_TRUE
 OPENCV_LIBS
@@ -17760,13 +17762,13 @@ $as_echo_n "checking for spdlog library...... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#include <spdlog/spdlog.h>
+                    #include <spdlog/spdlog.h>
 
 int
 main ()
 {
 
-					spdlog::info("test");
+                    spdlog::info("test");
 
   ;
   return 0;
@@ -17789,9 +17791,8 @@ $as_echo "yes" >&6; }
 else
 
             HAVE_SPDLOG=0
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: can't find spdlog lib" >&5
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: can't find spdlog lib" >&5
 $as_echo "$as_me: WARNING: can't find spdlog lib" >&2;}
-			LIBS=$SAVED_LIBS
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
@@ -17800,6 +17801,55 @@ rm -f core conftest.err conftest.$ac_objext \
 cat >>confdefs.h <<_ACEOF
 #define HAVE_SPDLOG $HAVE_SPDLOG
 _ACEOF
+
+
+###############################
+# Check for docopt
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for docopt..." >&5
+$as_echo_n "checking for docopt...... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+                    #include "thirdparty/docopt/docopt.h"
+
+int
+main ()
+{
+
+                    docopt::DocoptLanguageError e("null");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+
+             if true; then
+  HAVE_DOCOPT_TRUE=
+  HAVE_DOCOPT_FALSE='#'
+else
+  HAVE_DOCOPT_TRUE='#'
+  HAVE_DOCOPT_FALSE=
+fi
+
+            HAVE_DOCOPT=1
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+            HAVE_DOCOPT=0
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: can't find docopt lib" >&5
+$as_echo "$as_me: WARNING: can't find docopt lib" >&2;}
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DOCOPT $HAVE_DOCOPT
+_ACEOF
+
 
 
 cat >confcache <<\_ACEOF
@@ -17949,6 +17999,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_SPDLOG_TRUE}" && test -z "${HAVE_SPDLOG_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_SPDLOG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${HAVE_DOCOPT_TRUE}" && test -z "${HAVE_DOCOPT_FALSE}"; then
+  as_fn_error $? "conditional \"HAVE_DOCOPT\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

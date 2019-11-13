@@ -13,4 +13,11 @@ bin_PROGRAMS = test-optar
 
 test_optar_SOURCES = test/test-optar.cpp
 test_optar_CXXFLAGS = -I$(top_srcdir)/source
+
+if HAVE_DOCOPT
+
+test_optar_CXXFLAGS += -I$(top_srcdir)/thirdparty
+
+endif
+
 test_optar_LDADD = liboptar.la

@@ -47,18 +47,36 @@ AC_CHECK_HEADERS([opencv2/opencv.hpp],
 AC_MSG_CHECKING([for spdlog library...])
 AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([
-					#include <spdlog/spdlog.h>
-				],[
-					spdlog::info("test");
-		])],[
+                    #include <spdlog/spdlog.h>
+                ],[
+                    spdlog::info("test");
+        ])],[
             AM_CONDITIONAL([HAVE_SPDLOG], true)
             HAVE_SPDLOG=1
             AC_MSG_RESULT([yes])
-		],[
+        ],[
             HAVE_SPDLOG=0
-			AC_MSG_WARN([can't find spdlog lib])
-			LIBS=$SAVED_LIBS
-		])
+            AC_MSG_WARN([can't find spdlog lib])
+        ])
 AC_DEFINE_UNQUOTED([HAVE_SPDLOG], $HAVE_SPDLOG, [1 if have spdlog.])
+
+###############################
+# Check for docopt
+AC_MSG_CHECKING([for docopt...])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([
+                    #include "thirdparty/docopt/docopt.h"
+                ],[
+                    docopt::DocoptLanguageError e("null");
+        ])],[
+            AM_CONDITIONAL([HAVE_DOCOPT], true)
+            HAVE_DOCOPT=1
+            AC_MSG_RESULT([yes])
+        ],[
+            HAVE_DOCOPT=0
+            AC_MSG_WARN([can't find docopt lib])
+        ])
+AC_DEFINE_UNQUOTED([HAVE_DOCOPT], $HAVE_DOCOPT, [1 if have docopt.])
+
 
 AC_OUTPUT

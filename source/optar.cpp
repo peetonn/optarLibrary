@@ -24,7 +24,7 @@ namespace optar {
 
 const char* getLibraryVersion()
 {
-    char msg[256];
+    static char msg[256];
     sprintf(msg, "optar v%s (opencv %s)", PACKAGE_VERSION, CV_VERSION);
     return msg;
 }

@@ -91,6 +91,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = test-optar$(EXEEXT)
+@HAVE_DOCOPT_TRUE@am__append_1 = -I$(top_srcdir)/thirdparty
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -380,7 +381,7 @@ liboptar_la_SOURCES = \
 liboptar_la_CPPFLAGS = $(OPENCV_CFLAGS)
 liboptar_la_LIBADD = $(OPENCV_LIBS)
 test_optar_SOURCES = test/test-optar.cpp
-test_optar_CXXFLAGS = -I$(top_srcdir)/source
+test_optar_CXXFLAGS = -I$(top_srcdir)/source $(am__append_1)
 test_optar_LDADD = liboptar.la
 all: all-am
 
