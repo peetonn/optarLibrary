@@ -6,8 +6,13 @@
 //
 
 #include "optar.hpp"
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
+
+#include "config.hpp"
+#include "logging.hpp"
+
 
 #define MAX_FEATURES 500 // ???
 
@@ -20,7 +25,7 @@ namespace optar {
 const char* getLibraryVersion()
 {
     char msg[256];
-    sprintf(msg, "optar v0.0.1 (opencv %s)", CV_VERSION);
+    sprintf(msg, "optar v%s (opencv %s)", PACKAGE_VERSION, CV_VERSION);
     return msg;
 }
 
@@ -28,12 +33,12 @@ const char* getLibraryVersion()
 //******************************************************************************
 OptarClient::OptarClient()
 {
-    
+
 }
 
 OptarClient::~OptarClient()
 {
-    
+
 }
 
 void
@@ -42,16 +47,16 @@ OptarClient::processTexture(int w, int h, const void *rgbaData,
 {
     Mat imgWrapper = Mat(h,w, CV_8UC4, const_cast<void*>(rgbaData));
     Mat imgGray;
-    
+
     cvtColor(imgWrapper, imgGray, COLOR_RGBA2GRAY);
-    
+
     vector<KeyPoint> keypoints;
     Mat descriptors;
-     
+
     // Detect ORB features and compute descriptors.
     Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
     orb->detectAndCompute(imgGray, Mat(), keypoints, descriptors);
-    
+
     nKeypoints = (int)keypoints.size();
 //    nDescriptors = ()descriptors.size();
 }

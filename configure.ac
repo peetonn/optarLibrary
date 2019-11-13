@@ -44,5 +44,21 @@ AC_CHECK_HEADERS([opencv2/opencv.hpp],
 
 ###############################
 # Check for spdlog
+AC_MSG_CHECKING([for spdlog library...])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([
+					#include <spdlog/spdlog.h>
+				],[
+					spdlog::info("test");
+		])],[
+            AM_CONDITIONAL([HAVE_SPDLOG], true)
+            HAVE_SPDLOG=1
+            AC_MSG_RESULT([yes])
+		],[
+            HAVE_SPDLOG=0
+			AC_MSG_WARN([can't find spdlog lib])
+			LIBS=$SAVED_LIBS
+		])
+AC_DEFINE_UNQUOTED([HAVE_SPDLOG], $HAVE_SPDLOG, [1 if have spdlog.])
 
 AC_OUTPUT

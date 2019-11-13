@@ -137,7 +137,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 liboptar_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_liboptar_la_OBJECTS = source/liboptar_la-optar.lo
+am_liboptar_la_OBJECTS = source/liboptar_la-optar.lo \
+	source/liboptar_la-logging.lo
 liboptar_la_OBJECTS = $(am_liboptar_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -158,7 +159,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/source
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = source/$(DEPDIR)/liboptar_la-optar.Plo
+am__depfiles_remade = source/$(DEPDIR)/liboptar_la-logging.Plo \
+	source/$(DEPDIR)/liboptar_la-optar.Plo
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -356,8 +358,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = liboptar.la
-pkginclude_HEADERS = source/optar.hpp
-liboptar_la_SOURCES = source/optar.cpp
+pkginclude_HEADERS = \
+	source/optar.hpp \
+	source/logging.hpp
+
+liboptar_la_SOURCES = \
+	source/optar.cpp \
+	source/logging.cpp
+
 liboptar_la_CPPFLAGS = $(OPENCV_CFLAGS)
 liboptar_la_LIBADD = $(OPENCV_LIBS)
 all: all-am
@@ -455,6 +463,8 @@ source/$(DEPDIR)/$(am__dirstamp):
 	@: > source/$(DEPDIR)/$(am__dirstamp)
 source/liboptar_la-optar.lo: source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
+source/liboptar_la-logging.lo: source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
 
 liboptar.la: $(liboptar_la_OBJECTS) $(liboptar_la_DEPENDENCIES) $(EXTRA_liboptar_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(liboptar_la_OBJECTS) $(liboptar_la_LIBADD) $(LIBS)
@@ -467,6 +477,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/liboptar_la-logging.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/liboptar_la-optar.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -505,6 +516,13 @@ source/liboptar_la-optar.lo: source/optar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='source/optar.cpp' object='source/liboptar_la-optar.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboptar_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o source/liboptar_la-optar.lo `test -f 'source/optar.cpp' || echo '$(srcdir)/'`source/optar.cpp
+
+source/liboptar_la-logging.lo: source/logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboptar_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT source/liboptar_la-logging.lo -MD -MP -MF source/$(DEPDIR)/liboptar_la-logging.Tpo -c -o source/liboptar_la-logging.lo `test -f 'source/logging.cpp' || echo '$(srcdir)/'`source/logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) source/$(DEPDIR)/liboptar_la-logging.Tpo source/$(DEPDIR)/liboptar_la-logging.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='source/logging.cpp' object='source/liboptar_la-logging.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboptar_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o source/liboptar_la-logging.lo `test -f 'source/logging.cpp' || echo '$(srcdir)/'`source/logging.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -808,7 +826,8 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-		-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
+		-rm -f source/$(DEPDIR)/liboptar_la-logging.Plo
+	-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -856,7 +875,8 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-		-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
+		-rm -f source/$(DEPDIR)/liboptar_la-logging.Plo
+	-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
