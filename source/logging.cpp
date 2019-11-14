@@ -54,6 +54,8 @@ void initMainLogger()
     else
         mainLogger = spdlog::stdout_color_mt("optar");
 
+    spdlog::flush_every(chrono::seconds(1));
+    spdlog::set_default_logger(mainLogger);
     spdlog::set_pattern(getenv(LOG_FORMAT_ENV) ? getenv(LOG_FORMAT_ENV) : DEFAULT_FORMAT);
     initLogger(mainLogger);
 }

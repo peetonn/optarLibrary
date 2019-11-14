@@ -9,6 +9,7 @@
 #define __optar_hpp__
 
 #include "config.hpp"
+#include <map>
 
 namespace optar
 {
@@ -17,11 +18,25 @@ const char* getLibraryVersion();
 
 class OptarClient {
 public:
-    OptarClient();
+    typedef struct _Settings {
+        int rawImageScaleDownF_ = 2; // scale down factor for raw image
+        int orbMaxPoints_ = 1000;
+        int orbLevelsNumber_ = 10;
+        double orbScaleFactor_ = 1.18f;
+        double targetFps_ = 30;
+        bool showDebugImage_ = false, sendDebugImage_ = false;
+    } Settings;
+
+    OptarClient(const Settings& settings);
     ~OptarClient();
 
-    void processTexture(int w, int h, const void *rgbaData,
-                        int &nKeypoints, int &nDescriptors);
+    void processTexture(int w, int h, const void *rgbaData);
+    
+    const std::map<std::string, double>& getStats() const;
+    
+private:
+    class Impl;
+    std::shared_ptr<OptarClient::Impl> pimpl_;
 };
 
 }

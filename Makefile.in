@@ -92,6 +92,7 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = test-optar$(EXEEXT)
 @HAVE_DOCOPT_TRUE@am__append_1 = -I$(top_srcdir)/thirdparty
+@HAVE_DOCOPT_TRUE@am__append_2 = thirdparty/docopt/docopt.cpp
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -149,7 +150,11 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_test_optar_OBJECTS = test/optar-test-optar.$(OBJEXT)
+am__test_optar_SOURCES_DIST = test/test-optar.cpp \
+	thirdparty/docopt/docopt.cpp
+@HAVE_DOCOPT_TRUE@am__objects_1 = thirdparty/docopt/test_optar-docopt.$(OBJEXT)
+am_test_optar_OBJECTS = test/optar-test-optar.$(OBJEXT) \
+	$(am__objects_1)
 test_optar_OBJECTS = $(am_test_optar_OBJECTS)
 test_optar_DEPENDENCIES = liboptar.la
 test_optar_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -172,7 +177,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = source/$(DEPDIR)/liboptar_la-logging.Plo \
 	source/$(DEPDIR)/liboptar_la-optar.Plo \
-	test/$(DEPDIR)/optar-test-optar.Po
+	test/$(DEPDIR)/optar-test-optar.Po \
+	thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -193,7 +199,7 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(liboptar_la_SOURCES) $(test_optar_SOURCES)
-DIST_SOURCES = $(liboptar_la_SOURCES) $(test_optar_SOURCES)
+DIST_SOURCES = $(liboptar_la_SOURCES) $(am__test_optar_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -380,7 +386,7 @@ liboptar_la_SOURCES = \
 
 liboptar_la_CPPFLAGS = $(OPENCV_CFLAGS)
 liboptar_la_LIBADD = $(OPENCV_LIBS)
-test_optar_SOURCES = test/test-optar.cpp
+test_optar_SOURCES = test/test-optar.cpp $(am__append_2)
 test_optar_CXXFLAGS = -I$(top_srcdir)/source $(am__append_1)
 test_optar_LDADD = liboptar.la
 all: all-am
@@ -540,6 +546,15 @@ test/$(DEPDIR)/$(am__dirstamp):
 	@: > test/$(DEPDIR)/$(am__dirstamp)
 test/optar-test-optar.$(OBJEXT): test/$(am__dirstamp) \
 	test/$(DEPDIR)/$(am__dirstamp)
+thirdparty/docopt/$(am__dirstamp):
+	@$(MKDIR_P) thirdparty/docopt
+	@: > thirdparty/docopt/$(am__dirstamp)
+thirdparty/docopt/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) thirdparty/docopt/$(DEPDIR)
+	@: > thirdparty/docopt/$(DEPDIR)/$(am__dirstamp)
+thirdparty/docopt/test_optar-docopt.$(OBJEXT):  \
+	thirdparty/docopt/$(am__dirstamp) \
+	thirdparty/docopt/$(DEPDIR)/$(am__dirstamp)
 
 test-optar$(EXEEXT): $(test_optar_OBJECTS) $(test_optar_DEPENDENCIES) $(EXTRA_test_optar_DEPENDENCIES) 
 	@rm -f test-optar$(EXEEXT)
@@ -550,6 +565,7 @@ mostlyclean-compile:
 	-rm -f source/*.$(OBJEXT)
 	-rm -f source/*.lo
 	-rm -f test/*.$(OBJEXT)
+	-rm -f thirdparty/docopt/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -557,6 +573,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/liboptar_la-logging.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/liboptar_la-optar.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/optar-test-optar.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -615,6 +632,20 @@ test/optar-test-optar.obj: test/test-optar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test/test-optar.cpp' object='test/optar-test-optar.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_optar_CXXFLAGS) $(CXXFLAGS) -c -o test/optar-test-optar.obj `if test -f 'test/test-optar.cpp'; then $(CYGPATH_W) 'test/test-optar.cpp'; else $(CYGPATH_W) '$(srcdir)/test/test-optar.cpp'; fi`
+
+thirdparty/docopt/test_optar-docopt.o: thirdparty/docopt/docopt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_optar_CXXFLAGS) $(CXXFLAGS) -MT thirdparty/docopt/test_optar-docopt.o -MD -MP -MF thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Tpo -c -o thirdparty/docopt/test_optar-docopt.o `test -f 'thirdparty/docopt/docopt.cpp' || echo '$(srcdir)/'`thirdparty/docopt/docopt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Tpo thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='thirdparty/docopt/docopt.cpp' object='thirdparty/docopt/test_optar-docopt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_optar_CXXFLAGS) $(CXXFLAGS) -c -o thirdparty/docopt/test_optar-docopt.o `test -f 'thirdparty/docopt/docopt.cpp' || echo '$(srcdir)/'`thirdparty/docopt/docopt.cpp
+
+thirdparty/docopt/test_optar-docopt.obj: thirdparty/docopt/docopt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_optar_CXXFLAGS) $(CXXFLAGS) -MT thirdparty/docopt/test_optar-docopt.obj -MD -MP -MF thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Tpo -c -o thirdparty/docopt/test_optar-docopt.obj `if test -f 'thirdparty/docopt/docopt.cpp'; then $(CYGPATH_W) 'thirdparty/docopt/docopt.cpp'; else $(CYGPATH_W) '$(srcdir)/thirdparty/docopt/docopt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Tpo thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='thirdparty/docopt/docopt.cpp' object='thirdparty/docopt/test_optar-docopt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_optar_CXXFLAGS) $(CXXFLAGS) -c -o thirdparty/docopt/test_optar-docopt.obj `if test -f 'thirdparty/docopt/docopt.cpp'; then $(CYGPATH_W) 'thirdparty/docopt/docopt.cpp'; else $(CYGPATH_W) '$(srcdir)/thirdparty/docopt/docopt.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -911,6 +942,8 @@ distclean-generic:
 	-rm -f source/$(am__dirstamp)
 	-rm -f test/$(DEPDIR)/$(am__dirstamp)
 	-rm -f test/$(am__dirstamp)
+	-rm -f thirdparty/docopt/$(DEPDIR)/$(am__dirstamp)
+	-rm -f thirdparty/docopt/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -925,6 +958,7 @@ distclean: distclean-am
 		-rm -f source/$(DEPDIR)/liboptar_la-logging.Plo
 	-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
 	-rm -f test/$(DEPDIR)/optar-test-optar.Po
+	-rm -f thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -975,6 +1009,7 @@ maintainer-clean: maintainer-clean-am
 		-rm -f source/$(DEPDIR)/liboptar_la-logging.Plo
 	-rm -f source/$(DEPDIR)/liboptar_la-optar.Plo
 	-rm -f test/$(DEPDIR)/optar-test-optar.Po
+	-rm -f thirdparty/docopt/$(DEPDIR)/test_optar-docopt.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

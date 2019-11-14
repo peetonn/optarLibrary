@@ -17,6 +17,7 @@ test_optar_CXXFLAGS = -I$(top_srcdir)/source
 if HAVE_DOCOPT
 
 test_optar_CXXFLAGS += -I$(top_srcdir)/thirdparty
+test_optar_SOURCES += thirdparty/docopt/docopt.cpp
 
 endif
 
