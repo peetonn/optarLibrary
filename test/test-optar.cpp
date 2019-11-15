@@ -125,6 +125,7 @@ void runTest(const string &videoFile, uint16_t w, uint16_t h, double fps,
     
     
     OptarClient::Settings s;
+    s.orbLevelsNumber_ = 10;
     s.showDebugImage_ = interactive || debugPreview;
     OptarClient optarClient(s);
     

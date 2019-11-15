@@ -16,13 +16,14 @@
 
 #define MAX_FEATURES 500 // ???
 
+#define DEBUG_SHOW(img)
+
 #if DEBUG
 
+#ifndef __ANDROID__
+#undef DEBUG_SHOW
 #define DEBUG_SHOW(img) cv::imshow("optar-"#img, img); cv::waitKey(1);
-
-#else
-
-#define DEBUG_SHOW(img)
+#endif
 
 #endif
 
@@ -65,7 +66,7 @@ const char* getLibraryVersion()
 }
 
 //******************************************************************************
-class OptarClient::Impl : enable_shared_from_this<OptarClient::Impl> {
+class OptarClient::Impl : public enable_shared_from_this<OptarClient::Impl> {
 public:
     Impl(const OptarClient::Settings &settings)
     : settings_(settings)
@@ -74,7 +75,11 @@ public:
     {}
     ~Impl()
     {
+#ifndef __ANDROID__
+#if DEBUG
         destroyAllWindows();
+#endif
+#endif
     }
     
     void processTexture(int w, int h, const void *rgbaData);
@@ -87,6 +92,9 @@ private:
     OptarClient::Settings settings_;
     map<string, double> stats_;
     Ptr<Feature2D> orb_;
+    
+    void runOrb(int w, int h, const void *rgbaData,
+                vector<KeyPoint> &keypoints, Mat &descriptors);
 };
 
 //******************************************************************************
@@ -113,6 +121,38 @@ OptarClient::getStats() const
 void
 OptarClient::Impl::processTexture(int w, int h, const void *rgbaData)
 {
+    // - compute ORB descriptors
+    vector<KeyPoint> keypoints;
+    Mat descriptors;
+    runOrb(w, h, rgbaData, keypoints, descriptors);
+    
+    if (keypoints.size())
+    {
+        
+        // - obtain camera pose
+        
+        // - form an OPTAR-ROS message
+        //   required data
+        //      instance-time:
+        //          - device ID <- ???
+        //          - camera intrinsics <- GoogleARCore.Frame.CameraImage.ImageIntrinsics
+        //      frame-time:
+        //          - camera pose <- from PoseManager or current GoogleARCore.Frame.Pose
+        //          - keypoints
+        //          - descriptors
+        //          - ARCore camera ROS frame ID <- ???
+        //          - image time <- ROS time from NTP client
+        
+        // - send message
+    }
+    else
+        OLOG_DEBUG("No image keypoints found. Skip frame");
+}
+
+void
+OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
+                          vector<KeyPoint> &keypoints, Mat &descriptors)
+{
     profiling::start();
     
     Mat imgWrapper = Mat(h,w, CV_8UC4, const_cast<void*>(rgbaData));
@@ -125,9 +165,6 @@ OptarClient::Impl::processTexture(int w, int h, const void *rgbaData)
     
     cvtColor(procImg, procImg, COLOR_RGBA2GRAY);
     stats_["cvtColor"] = profiling::snap<chrono::microseconds>();
-    
-    vector<KeyPoint> keypoints;
-    Mat descriptors;
     
     // Detect ORB features and compute descriptors.
     orb_->detectAndCompute(procImg, Mat(), keypoints, descriptors);
