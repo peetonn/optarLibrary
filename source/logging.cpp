@@ -44,6 +44,49 @@ struct _LibInitializer {
     }
 } libInitializer = {};
 
+//******************************************************************************
+// callback sink implementation
+// @see https://github.com/gabime/spdlog/wiki/4.-Sinks#implementing-your-own-sink
+#include "spdlog/sinks/base_sink.h"
+
+template<typename Mutex>
+class CallbackSink : public spdlog::sinks::base_sink <Mutex>
+{
+
+public:
+    CallbackSink(helpers::LogCallback logCallback) :
+    logCallback_(logCallback)
+    {}
+
+protected:
+    void sink_it_(const spdlog::details::log_msg& msg) override
+    {
+#if __ANDROID__
+        fmt::basic_memory_buffer<char, 250> formatted;
+#else
+        fmt::memory_buffer formatted;
+#endif
+        spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
+        msg_ = fmt::to_string(formatted);
+    }
+
+    void flush_() override
+    {
+        if (msg_.size())
+            logCallback_(msg_);
+    }
+
+private:
+    helpers::LogCallback logCallback_;
+    string msg_;
+};
+
+#include "spdlog/details/null_mutex.h"
+#include <mutex>
+using CallbackSinkMt = CallbackSink<mutex>;
+using CallbackSinkSt = CallbackSink<spdlog::details::null_mutex>;
+
+//******************************************************************************
 void initMainLogger()
 {
     logLevel = getenv(LOG_LEVEL_ENV) ? string(getenv(LOG_LEVEL_ENV)) : "";
@@ -72,7 +115,10 @@ void initLogger(shared_ptr<helpers::logger> logger)
     logger->flush();
 }
 
-void newLogger(std::string loggerName)
+namespace optar
+{
+
+void newLogger(string loggerName)
 {
     shared_ptr<spdlog::logger> logger;
 
@@ -90,18 +136,27 @@ shared_ptr<spdlog::logger> getLogger(string loggerName)
     return logger;
 }
 
-void flushLogger(std::string loggerName)
+void flushLogger(string loggerName)
 {
     spdlog::get(loggerName)->flush();
 }
 
+void registerCallback(shared_ptr<helpers::logger> logger, helpers::LogCallback callback)
+{
+    logger->sinks().push_back(make_shared<CallbackSinkMt>(callback));
+}
+
+}
 #else
 
-using namespace optar;
+namespace optar
+{
 
-void newLogger(std::string loggerName) {}
-std::shared_ptr<helpers::logger> getLogger(std::string loggerName) { return std::shared_ptr<helpers::logger>(); }
-void flushLogger(std::string loggerName) {}
+void newLogger(string loggerName) {}
+shared_ptr<helpers::logger> getLogger(string loggerName) { return shared_ptr<helpers::logger>(); }
+void flushLogger(string loggerName) {}
+void registerCallback(shared_ptr<helpers::logger>, LogCallback) {}
 
+}
 
 #endif

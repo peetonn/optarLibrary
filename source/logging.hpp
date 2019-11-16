@@ -39,11 +39,13 @@ namespace optar {
     namespace helpers {
         typedef spdlog::logger logger;
         typedef spdlog::level::level_enum log_level;
+        typedef std::function<void(const std::string&)> LogCallback;
     }
 
     void newLogger(std::string loggerName);
     std::shared_ptr<helpers::logger> getLogger(std::string loggerName);
     void flushLogger(std::string loggerName);
+    void registerCallback(std::shared_ptr<helpers::logger>, helpers::LogCallback);
 }
 
 #else
@@ -60,11 +62,13 @@ namespace optar {
 namespace optar {
     namespace helpers {
         typedef void logger;
+        typedef void LogCallback;
     }
 
     void newLogger(std::string loggerName);
     std::shared_ptr<helpers::logger> getLogger(std::string loggerName);
     void flushLogger(std::string loggerName);
+    void registerCallback(std::shared_ptr<helpers::logger>, helpers::LogCallback);
 }
 
 #endif

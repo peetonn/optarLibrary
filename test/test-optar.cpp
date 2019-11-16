@@ -128,14 +128,19 @@ void runTest(const string &videoFile, uint16_t w, uint16_t h, double fps,
     s.orbLevelsNumber_ = 10;
     s.showDebugImage_ = interactive || debugPreview;
     OptarClient optarClient(s);
+    int nKeypoints = 0;
     
     while (!mustExit)
     {
         if (readFrame(f, rgbaData, w, h))
         {
+            OptarClient::Point *keypoints = nullptr;
             frameIdx++;
-            optarClient.processTexture(w, h, rgbaData);
+            optarClient.processTexture(w, h, rgbaData, nKeypoints, &keypoints);
             printStats(frameIdx, optarClient.getStats());
+            
+            if (keypoints)
+                free(keypoints);
         }
         else
             break;

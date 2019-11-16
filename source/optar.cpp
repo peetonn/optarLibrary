@@ -59,8 +59,19 @@ inline int total() { return (int)duration_cast<CastT>(high_resolution_clock::now
 const char* getLibraryVersion()
 {
     static char msg[256];
-    sprintf(msg, "optar v%s (opencv %s)", PACKAGE_VERSION, CV_VERSION);
+#if DEBUG
+    sprintf(msg, "optar v%s-%s (opencv %s)", PACKAGE_VERSION, "debug", CV_VERSION);
+#else
+    sprintf(msg, "optar v%s-%s (opencv %s)", PACKAGE_VERSION, "release", CV_VERSION);
+#endif
     return msg;
+}
+
+void registerLogCallback(LogCallback clbck)
+{
+    registerCallback(getLogger("optar"),  [clbck](const string& msg){
+        clbck(msg.c_str());
+    });
 }
 
 }
@@ -82,7 +93,9 @@ public:
 #endif
     }
     
-    void processTexture(int w, int h, const void *rgbaData);
+    void processTexture(int w, int h, const void *rgbaData,
+                        int &nKeypoints, OptarClient::Point **keypointsOut,
+                        bool debugSaveImage);
     const map<string, double>& getStats() const
     {
         return stats_;
@@ -94,7 +107,8 @@ private:
     Ptr<Feature2D> orb_;
     
     void runOrb(int w, int h, const void *rgbaData,
-                vector<KeyPoint> &keypoints, Mat &descriptors);
+                vector<KeyPoint> &keypoints, Mat &descriptors,
+                bool debugSaveImage = false);
 };
 
 //******************************************************************************
@@ -106,9 +120,12 @@ OptarClient::OptarClient(const Settings& settings)
 OptarClient::~OptarClient(){}
 
 void
-OptarClient::processTexture(int w, int h, const void *rgbaData)
+OptarClient::processTexture(int w, int h, const void *rgbaData,
+                            int &nKeypoints, OptarClient::Point **keypointsOut,
+                            bool debugSaveImage)
 {
-    pimpl_->processTexture(w, h, rgbaData);
+    pimpl_->processTexture(w, h, rgbaData, nKeypoints, keypointsOut,
+                           debugSaveImage);
 }
 
 const map<string, double>&
@@ -119,15 +136,31 @@ OptarClient::getStats() const
 
 //******************************************************************************
 void
-OptarClient::Impl::processTexture(int w, int h, const void *rgbaData)
+OptarClient::Impl::processTexture(int w, int h, const void *rgbaData,
+                                  int &nKeypoints, OptarClient::Point **keypointsOut,
+                                  bool debugSaveImage)
 {
     // - compute ORB descriptors
     vector<KeyPoint> keypoints;
     Mat descriptors;
     runOrb(w, h, rgbaData, keypoints, descriptors);
     
+    nKeypoints = keypoints.size();
+    
     if (keypoints.size())
     {
+        if (keypointsOut)
+        {
+            *keypointsOut = (Point*)malloc(sizeof(Point)*keypoints.size());
+            
+            int i = 0;
+            double s = settings_.rawImageScaleDownF_;
+            for (auto kp : keypoints)
+            {
+                (*keypointsOut)[i].x = int(kp.pt.x*s);
+                (*keypointsOut)[i++].y = int(kp.pt.y*s);
+            }
+        }
         
         // - obtain camera pose
         
@@ -151,7 +184,8 @@ OptarClient::Impl::processTexture(int w, int h, const void *rgbaData)
 
 void
 OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
-                          vector<KeyPoint> &keypoints, Mat &descriptors)
+                          vector<KeyPoint> &keypoints, Mat &descriptors,
+                          bool debugSaveImage)
 {
     profiling::start();
     
@@ -184,6 +218,8 @@ OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
         Mat kpImage;
         drawKeypoints(procImg, keypoints, kpImage);
         DEBUG_SHOW(kpImage);
+        if (debugSaveImage)
+            imwrite("keypoints.jpg", kpImage);
     }
 #endif
     
