@@ -67,18 +67,22 @@ protected:
         fmt::memory_buffer formatted;
 #endif
         spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
-        msg_ = fmt::to_string(formatted);
+        msgs_.push_back(fmt::to_string(formatted));
     }
 
     void flush_() override
     {
-        if (msg_.size())
-            logCallback_(msg_);
+        if (msgs_.size())
+        {
+            for (auto m:msgs_)
+                logCallback_(m);
+            msgs_.clear();
+        }
     }
 
 private:
     helpers::LogCallback logCallback_;
-    string msg_;
+    vector<string> msgs_;
 };
 
 #include "spdlog/details/null_mutex.h"
@@ -107,7 +111,11 @@ void initLogger(shared_ptr<helpers::logger> logger)
 {
     logger->flush_on(spdlog::level::err);
     if (logLevel == "")
+#if DEBUG
+        logLevel = "trace";
+#else
         logLevel = "info";
+#endif
 
     logger->set_level(spdlog::level::from_str(logLevel));
     logger->info("Initialized logger {}: level {} file {}",  logger->name(),

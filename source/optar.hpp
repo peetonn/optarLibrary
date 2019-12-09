@@ -12,7 +12,6 @@
 
 #include <map>
 #include <memory>
-//#include <vector>
 
 namespace optar
 {
@@ -31,8 +30,9 @@ public:
         double orbScaleFactor_ = 1.18f;
         double targetFps_ = 30;
         bool showDebugImage_ = false, sendDebugImage_ = false;
+        const char* rosMasterUri_;
     } Settings;
-    
+
     typedef struct _Point {
         int x, y;
     } Point;
@@ -52,9 +52,24 @@ public:
                         int &nKeyPoints,
                         Point **keyPoints = nullptr,
                         bool debugSaveImage = false);
-    
+
+    /**
+     * Runs OPTAR algorithms on the texture and sends results to ROS server.
+     * @param w Width of the image (texture)
+     * @param h Height of the image
+     * @param yStride Y row stride
+     * @param yuvData YUV plane data
+     * @param nKeyPoints Returns number of keypoints detected
+     * @param keyPoints If not null, this function will store keypoint data in this array. Client code is responsible for calling free().
+     */
+    void processTexture(int w, int h, int yStride,
+                        const void *yuvData,
+                        int &nKeyPoints,
+                        Point **keyPoints = nullptr,
+                        bool debugSaveImage = false);
+
     const std::map<std::string, double>& getStats() const;
-    
+
 private:
     class Impl;
     std::shared_ptr<OptarClient::Impl> pimpl_;

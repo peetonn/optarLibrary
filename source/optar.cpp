@@ -13,8 +13,7 @@
 
 #include "config.hpp"
 #include "logging.hpp"
-
-#define MAX_FEATURES 500 // ???
+#include "ros/ros-client.hpp"
 
 #define DEBUG_SHOW(img)
 
@@ -31,6 +30,9 @@ using namespace std;
 using namespace std::chrono;
 using namespace cv;
 using namespace optar;
+
+void __attribute__((constructor)) lib_ctor(){}
+void __attribute__((destructor)) lib_dtor(){}
 
 namespace optar {
 
@@ -69,7 +71,7 @@ const char* getLibraryVersion()
 
 void registerLogCallback(LogCallback clbck)
 {
-    registerCallback(getLogger("optar"),  [clbck](const string& msg){
+    registerCallback(getLogger("optar"), [clbck](const string& msg){
         clbck(msg.c_str());
     });
 }
@@ -83,7 +85,10 @@ public:
     : settings_(settings)
     , orb_(ORB::create(settings_.orbMaxPoints_, settings_.orbScaleFactor_,
                        settings_.orbLevelsNumber_))
-    {}
+    {
+        RosClient::initRos(settings_.rosMasterUri_);
+    }
+
     ~Impl()
     {
 #ifndef __ANDROID__
@@ -92,8 +97,8 @@ public:
 #endif
 #endif
     }
-    
-    void processTexture(int w, int h, const void *rgbaData,
+
+    void processTexture(const Mat &img,
                         int &nKeypoints, OptarClient::Point **keypointsOut,
                         bool debugSaveImage);
     const map<string, double>& getStats() const
@@ -105,16 +110,17 @@ private:
     OptarClient::Settings settings_;
     map<string, double> stats_;
     Ptr<Feature2D> orb_;
-    
-    void runOrb(int w, int h, const void *rgbaData,
+
+    void runOrb(const Mat &img,
                 vector<KeyPoint> &keypoints, Mat &descriptors,
-                bool debugSaveImage = false);
+                bool debugSaveImage);
 };
 
 //******************************************************************************
 OptarClient::OptarClient(const Settings& settings)
 : pimpl_(make_shared<OptarClient::Impl>(settings))
 {
+    OLOG_DEBUG("Optar Library Client. {}", getLibraryVersion());
 }
 
 OptarClient::~OptarClient(){}
@@ -124,8 +130,23 @@ OptarClient::processTexture(int w, int h, const void *rgbaData,
                             int &nKeypoints, OptarClient::Point **keypointsOut,
                             bool debugSaveImage)
 {
-    pimpl_->processTexture(w, h, rgbaData, nKeypoints, keypointsOut,
-                           debugSaveImage);
+    Mat imgWrapper = Mat(h,w, CV_8UC4, const_cast<void*>(rgbaData));
+    pimpl_->processTexture(imgWrapper, nKeypoints, keypointsOut, debugSaveImage);
+}
+
+void
+OptarClient::processTexture(int w, int h, int yStride,
+                            const void *yuvData,
+                            int &nKeyPoints,
+                            Point **keyPoints,
+                            bool debugSaveImage)
+{
+    Mat imgYV12 = Mat(h * 3/2, w, CV_8UC1, const_cast<void*>(yuvData));
+    Mat imgDest;
+//    cvtColor(imgYV12, imgDest, COLOR_YUV2GRAY_YV12);
+//    cvtColor(imgYV12, imgDest, COLOR_YUV2GRAY_Y422);
+    cvtColor(imgYV12, imgDest, COLOR_YUV2RGBA_I420 );
+    pimpl_->processTexture(imgDest, nKeyPoints, keyPoints, debugSaveImage);
 }
 
 const map<string, double>&
@@ -136,15 +157,15 @@ OptarClient::getStats() const
 
 //******************************************************************************
 void
-OptarClient::Impl::processTexture(int w, int h, const void *rgbaData,
+OptarClient::Impl::processTexture(const Mat &img,
                                   int &nKeypoints, OptarClient::Point **keypointsOut,
                                   bool debugSaveImage)
 {
     // - compute ORB descriptors
     vector<KeyPoint> keypoints;
     Mat descriptors;
-    runOrb(w, h, rgbaData, keypoints, descriptors);
-    
+    runOrb(img, keypoints, descriptors, debugSaveImage);
+
     nKeypoints = keypoints.size();
     
     if (keypoints.size())
@@ -183,13 +204,12 @@ OptarClient::Impl::processTexture(int w, int h, const void *rgbaData,
 }
 
 void
-OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
+OptarClient::Impl::runOrb(const Mat &imgWrapper,
                           vector<KeyPoint> &keypoints, Mat &descriptors,
                           bool debugSaveImage)
 {
     profiling::start();
-    
-    Mat imgWrapper = Mat(h,w, CV_8UC4, const_cast<void*>(rgbaData));
+
     Mat procImg;
     
     double resizeF = 1./(double)settings_.rawImageScaleDownF_;
@@ -209,7 +229,7 @@ OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
 
     if (settings_.showDebugImage_)
     {
-        DEBUG_SHOW(procImg);
+        //DEBUG_SHOW(procImg);
     }
     
 #if DEBUG
@@ -217,9 +237,19 @@ OptarClient::Impl::runOrb(int w, int h, const void *rgbaData,
     {
         Mat kpImage;
         drawKeypoints(procImg, keypoints, kpImage);
-        DEBUG_SHOW(kpImage);
+        //DEBUG_SHOW(kpImage);
         if (debugSaveImage)
-            imwrite("keypoints.jpg", kpImage);
+        {
+            bool r = imwrite("/storage/emulated/0/Pictures/keypoints.jpg", kpImage);
+            if (r)
+            {
+                OLOG_DEBUG("Saved debug image keypoints.jpg");
+            }
+            else
+            {
+                OLOG_DEBUG("Couldn't save debug image");
+            }
+        }
     }
 #endif
     
