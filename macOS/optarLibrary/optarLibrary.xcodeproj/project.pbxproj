@@ -1,0 +1,440 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AF0368A6237CBF3D00B77802 /* test-optar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF036897237CA9A200B77802 /* test-optar.cpp */; };
+		AF0368A7237CBF3D00B77802 /* logging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF036898237CA9B200B77802 /* logging.cpp */; };
+		AF0368A8237CBF3D00B77802 /* optar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF036899237CA9B200B77802 /* optar.cpp */; };
+		AF0368AA237CBFFF00B77802 /* docopt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF0368A9237CBFFF00B77802 /* docopt.cpp */; };
+		AF0368AF237CC04700B77802 /* libopencv_features2d.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0368AC237CC04700B77802 /* libopencv_features2d.4.1.2.dylib */; };
+		AF0368B0237CC04700B77802 /* libopencv_core.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0368AD237CC04700B77802 /* libopencv_core.4.1.2.dylib */; };
+		AF0368B1237CC04700B77802 /* libopencv_xfeatures2d.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0368AE237CC04700B77802 /* libopencv_xfeatures2d.4.1.2.dylib */; };
+		AF0368B4237CC0BA00B77802 /* libopencv_imgproc.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0368B2237CC0BA00B77802 /* libopencv_imgproc.4.1.2.dylib */; };
+		AF0368B5237CC0BA00B77802 /* libopencv_highgui.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0368B3237CC0BA00B77802 /* libopencv_highgui.4.1.2.dylib */; };
+		AF9B4FD6237F747E0077DB47 /* libopencv_imgcodecs.4.1.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AF9B4FD5237F747E0077DB47 /* libopencv_imgcodecs.4.1.2.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AF9B4FD7237FBD490077DB47 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF03688B237CA8C600B77802 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AF0368A0237CBF3300B77802;
+			remoteInfo = "optar-index";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		AF036897237CA9A200B77802 /* test-optar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "test-optar.cpp"; path = "../../../test/test-optar.cpp"; sourceTree = "<group>"; };
+		AF036898237CA9B200B77802 /* logging.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = logging.cpp; path = ../../../source/logging.cpp; sourceTree = "<group>"; };
+		AF036899237CA9B200B77802 /* optar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = optar.cpp; path = ../../../source/optar.cpp; sourceTree = "<group>"; };
+		AF03689A237CA9B200B77802 /* optar.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = optar.hpp; path = ../../../source/optar.hpp; sourceTree = "<group>"; };
+		AF03689B237CA9B200B77802 /* config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = config.hpp; path = ../../../source/config.hpp; sourceTree = "<group>"; };
+		AF03689C237CA9B200B77802 /* logging.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = logging.hpp; path = ../../../source/logging.hpp; sourceTree = "<group>"; };
+		AF0368A1237CBF3300B77802 /* liboptar-index.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "liboptar-index.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF0368A9237CBFFF00B77802 /* docopt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = docopt.cpp; path = ../../thirdparty/docopt/docopt.cpp; sourceTree = "<group>"; };
+		AF0368AC237CC04700B77802 /* libopencv_features2d.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_features2d.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_features2d.4.1.2.dylib; sourceTree = "<group>"; };
+		AF0368AD237CC04700B77802 /* libopencv_core.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_core.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_core.4.1.2.dylib; sourceTree = "<group>"; };
+		AF0368AE237CC04700B77802 /* libopencv_xfeatures2d.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_xfeatures2d.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_xfeatures2d.4.1.2.dylib; sourceTree = "<group>"; };
+		AF0368B2237CC0BA00B77802 /* libopencv_imgproc.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_imgproc.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_imgproc.4.1.2.dylib; sourceTree = "<group>"; };
+		AF0368B3237CC0BA00B77802 /* libopencv_highgui.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_highgui.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_highgui.4.1.2.dylib; sourceTree = "<group>"; };
+		AF9B4FD5237F747E0077DB47 /* libopencv_imgcodecs.4.1.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_imgcodecs.4.1.2.dylib; path = ../../../../../../../usr/local/Cellar/opencv/4.1.2/lib/libopencv_imgcodecs.4.1.2.dylib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AF03689F237CBF3300B77802 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF9B4FD6237F747E0077DB47 /* libopencv_imgcodecs.4.1.2.dylib in Frameworks */,
+				AF0368B4237CC0BA00B77802 /* libopencv_imgproc.4.1.2.dylib in Frameworks */,
+				AF0368B5237CC0BA00B77802 /* libopencv_highgui.4.1.2.dylib in Frameworks */,
+				AF0368AF237CC04700B77802 /* libopencv_features2d.4.1.2.dylib in Frameworks */,
+				AF0368B0237CC04700B77802 /* libopencv_core.4.1.2.dylib in Frameworks */,
+				AF0368B1237CC04700B77802 /* libopencv_xfeatures2d.4.1.2.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AF03688A237CA8C600B77802 = {
+			isa = PBXGroup;
+			children = (
+				AF0368A9237CBFFF00B77802 /* docopt.cpp */,
+				AF036896237CA98F00B77802 /* test */,
+				AF036895237CA98600B77802 /* source */,
+				AF0368A2237CBF3300B77802 /* Products */,
+				AF0368AB237CC04600B77802 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AF036895237CA98600B77802 /* source */ = {
+			isa = PBXGroup;
+			children = (
+				AF03689B237CA9B200B77802 /* config.hpp */,
+				AF036898237CA9B200B77802 /* logging.cpp */,
+				AF03689C237CA9B200B77802 /* logging.hpp */,
+				AF036899237CA9B200B77802 /* optar.cpp */,
+				AF03689A237CA9B200B77802 /* optar.hpp */,
+			);
+			path = source;
+			sourceTree = "<group>";
+		};
+		AF036896237CA98F00B77802 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				AF036897237CA9A200B77802 /* test-optar.cpp */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		AF0368A2237CBF3300B77802 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AF0368A1237CBF3300B77802 /* liboptar-index.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AF0368AB237CC04600B77802 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AF9B4FD5237F747E0077DB47 /* libopencv_imgcodecs.4.1.2.dylib */,
+				AF0368B3237CC0BA00B77802 /* libopencv_highgui.4.1.2.dylib */,
+				AF0368B2237CC0BA00B77802 /* libopencv_imgproc.4.1.2.dylib */,
+				AF0368AD237CC04700B77802 /* libopencv_core.4.1.2.dylib */,
+				AF0368AC237CC04700B77802 /* libopencv_features2d.4.1.2.dylib */,
+				AF0368AE237CC04700B77802 /* libopencv_xfeatures2d.4.1.2.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		AF03689D237CBF3300B77802 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXLegacyTarget section */
+		AF03688F237CA8C600B77802 /* optarLibrary */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) CFLAGS=\"-g -O0\" CXXFLAGS=\"-g -O0 -DDEBUG -I/usr/local/include\" install V=1";
+			buildConfigurationList = AF036892237CA8C600B77802 /* Build configuration list for PBXLegacyTarget "optarLibrary" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "$(PROJECT_DIR)/../..";
+			dependencies = (
+				AF9B4FD8237FBD490077DB47 /* PBXTargetDependency */,
+			);
+			name = optarLibrary;
+			passBuildSettingsInEnvironment = 1;
+			productName = optarLibrary;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXNativeTarget section */
+		AF0368A0237CBF3300B77802 /* optar-index */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AF0368A3237CBF3300B77802 /* Build configuration list for PBXNativeTarget "optar-index" */;
+			buildPhases = (
+				AF03689D237CBF3300B77802 /* Headers */,
+				AF03689E237CBF3300B77802 /* Sources */,
+				AF03689F237CBF3300B77802 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "optar-index";
+			productName = "optar-index";
+			productReference = AF0368A1237CBF3300B77802 /* liboptar-index.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AF03688B237CA8C600B77802 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1100;
+				ORGANIZATIONNAME = "UCLA REMAP";
+				TargetAttributes = {
+					AF03688F237CA8C600B77802 = {
+						CreatedOnToolsVersion = 11.0;
+					};
+					AF0368A0237CBF3300B77802 = {
+						CreatedOnToolsVersion = 11.0;
+					};
+				};
+			};
+			buildConfigurationList = AF03688E237CA8C600B77802 /* Build configuration list for PBXProject "optarLibrary" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AF03688A237CA8C600B77802;
+			productRefGroup = AF0368A2237CBF3300B77802 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AF03688F237CA8C600B77802 /* optarLibrary */,
+				AF0368A0237CBF3300B77802 /* optar-index */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AF03689E237CBF3300B77802 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF0368AA237CBFFF00B77802 /* docopt.cpp in Sources */,
+				AF0368A6237CBF3D00B77802 /* test-optar.cpp in Sources */,
+				AF0368A8237CBF3D00B77802 /* optar.cpp in Sources */,
+				AF0368A7237CBF3D00B77802 /* logging.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AF9B4FD8237FBD490077DB47 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AF0368A0237CBF3300B77802 /* optar-index */;
+			targetProxy = AF9B4FD7237FBD490077DB47 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AF036890237CA8C600B77802 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+			};
+			name = Debug;
+		};
+		AF036891237CA8C600B77802 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+			};
+			name = Release;
+		};
+		AF036893237CA8C600B77802 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 6KW3GER39A;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "-I/usr/local/include";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AF036894237CA8C600B77802 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 6KW3GER39A;
+				OTHER_CFLAGS = "-I/usr/local/include";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		AF0368A4237CBF3300B77802 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6KW3GER39A;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/usr/local/include/opencv4,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/opencv/4.1.2/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../thirdparty";
+			};
+			name = Debug;
+		};
+		AF0368A5237CBF3300B77802 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6KW3GER39A;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/usr/local/include/opencv4,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/opencv/4.1.2/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../thirdparty";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AF03688E237CA8C600B77802 /* Build configuration list for PBXProject "optarLibrary" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF036890237CA8C600B77802 /* Debug */,
+				AF036891237CA8C600B77802 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AF036892237CA8C600B77802 /* Build configuration list for PBXLegacyTarget "optarLibrary" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF036893237CA8C600B77802 /* Debug */,
+				AF036894237CA8C600B77802 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AF0368A3237CBF3300B77802 /* Build configuration list for PBXNativeTarget "optar-index" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF0368A4237CBF3300B77802 /* Debug */,
+				AF0368A5237CBF3300B77802 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AF03688B237CA8C600B77802 /* Project object */;
+}
