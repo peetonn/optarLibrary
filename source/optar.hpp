@@ -31,6 +31,9 @@ public:
         double targetFps_ = 30;
         bool showDebugImage_ = false, sendDebugImage_ = false;
         const char* rosMasterUri_;
+        const char* deviceId_;
+
+        const char* toString();
     } Settings;
 
     typedef struct _Point {

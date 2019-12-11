@@ -86,7 +86,7 @@ public:
     , orb_(ORB::create(settings_.orbMaxPoints_, settings_.orbScaleFactor_,
                        settings_.orbLevelsNumber_))
     {
-        RosClient::initRos(settings_.rosMasterUri_);
+        setupRosComponents();
     }
 
     ~Impl()
@@ -111,12 +111,38 @@ private:
     map<string, double> stats_;
     Ptr<Feature2D> orb_;
 
+    // ROS components
+    shared_ptr<ros_components::HeartbeatPublisher> heartbeatPublisher_;
+    shared_ptr<ros_components::RosNtpClient> ntpClient_;
+
     void runOrb(const Mat &img,
                 vector<KeyPoint> &keypoints, Mat &descriptors,
                 bool debugSaveImage);
 };
 
 //******************************************************************************
+const char*
+OptarClient::_Settings::toString()
+{
+    stringstream ss;
+    ss
+    << "img scale down " << rawImageScaleDownF_
+    << " ORB max points " << orbMaxPoints_
+    << " ORB levels " << orbLevelsNumber_
+    << " ORB scale " << orbScaleFactor_
+    << " target FPS " << targetFps_
+    << " show debug img " << showDebugImage_
+    << " send debug img " << sendDebugImage_
+    << " ROS master URI " << rosMasterUri_
+    << " device ID " << deviceId_;
+
+    static char buf[1024];
+    memset(buf,0,1024);
+    memcpy(buf, ss.str().c_str(), ss.str().size());
+
+    return buf;
+}
+
 OptarClient::OptarClient(const Settings& settings)
 : pimpl_(make_shared<OptarClient::Impl>(settings))
 {
@@ -255,4 +281,13 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
     
     OLOG_DEBUG("ORB completed in {} (total {}). keypoints {}",
                stats_["orbCompute"], stats_["optarProc"], stats_["orbKp"]);
+}
+
+void
+OptarClient::Impl::setupRosComponents()
+{
+    using namespace ros_components;
+    RosClient::initRos(settings_.rosMasterUri_);
+    heartbeatPublisher_ = RosClient::createHeartbeatPublisher(settings_.deviceId_);
+    ntpClient_ = RosClient::createNtpClient();
 }
