@@ -20,6 +20,7 @@ namespace ros_components
 
 class HeartbeatPublisher;
 class RosNtpClient;
+class ArPosePublisher;
 
 /**
  * This class is a wrapper for ROS communication behind OPTAR.
@@ -30,13 +31,21 @@ public:
     static std::string TopicNameCentroids;
     static std::string TopicNameSkeletons;
     static std::string TopicNameNtpChat;
+    static std::string TopicNameComponentOptar;
+    static std::string TopicNameComponentPose;
+    static std::string TopicNameComponentFeatures;
+    static std::string TopicNameComponentCamera;
+    static std::string TopicNameComponentCameraFrame;
 
     static void initRos(const std::string &rosMasterUri);
     static bool getIsRosThreadRunning();
     static std::shared_ptr<HeartbeatPublisher> createHeartbeatPublisher(std::string);
     static std::shared_ptr<RosNtpClient> createNtpClient();
+    static std::shared_ptr<ArPosePublisher> createPosePublisher(std::string, double rate = 30.);
 
     RosClient(std::shared_ptr<ros::NodeHandle> nh, std::string deviceId);
+
+    std::string getRosTfFrame() const;
 
 protected:
     std::string deviceId_;
@@ -69,13 +78,35 @@ private:
     ros::Publisher publisher_;
     ros::Subscriber subscriber_;
     ros::Timer timer_;
-    int64_t lastRequestTsMs_, estimatedTimeDiffUsec_;
+    int64_t estimatedTimeDiffUsec_;
     std::string lastRequestId_;
     std::vector<int64_t> timeDiffs_;
 
     void onTimerFire(const ros::TimerEvent& event);
     void onNtpMessage(const opt_msgs::OptarNtpMessage::ConstPtr&);
     void sendRequest();
+
+};
+
+class ArPosePublisher : public RosClient {
+public:
+    typedef struct _Pose {
+        float posX_, posY_, posZ_;
+        float quatX_, quatY_, quatZ_, quatW_;
+    } Pose;
+
+    static std::string getTopicName(std::string deviceId);
+
+    ArPosePublisher(std::shared_ptr<ros::NodeHandle>, std::string, double rate);
+    ~ArPosePublisher();
+
+    void publishPose(const Pose& pose);
+
+private:
+    ros::Publisher publisher_;
+    ros::Timer timer_;
+    double publishRate_;
+    int64_t lastPublishTsMs_;
 
 };
 

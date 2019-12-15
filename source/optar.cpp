@@ -101,11 +101,13 @@ public:
     void processTexture(const Mat &img,
                         int &nKeypoints, OptarClient::Point **keypointsOut,
                         bool debugSaveImage);
+    void processArPose(const ros_components::ArPosePublisher::Pose &pose);
+
     const map<string, double>& getStats() const
     {
         return stats_;
     }
-    
+
 private:
     OptarClient::Settings settings_;
     map<string, double> stats_;
@@ -114,10 +116,12 @@ private:
     // ROS components
     shared_ptr<ros_components::HeartbeatPublisher> heartbeatPublisher_;
     shared_ptr<ros_components::RosNtpClient> ntpClient_;
+    shared_ptr<ros_components::ArPosePublisher> arPosePublisher_;
 
     void runOrb(const Mat &img,
                 vector<KeyPoint> &keypoints, Mat &descriptors,
                 bool debugSaveImage);
+    void setupRosComponents();
 };
 
 //******************************************************************************
@@ -175,6 +179,22 @@ OptarClient::processTexture(int w, int h, int yStride,
     pimpl_->processTexture(imgDest, nKeyPoints, keyPoints, debugSaveImage);
 }
 
+void
+OptarClient::processArPose(const Vector3 &position, const Vector4 &rotation)
+{
+    using namespace ros_components;
+    ArPosePublisher::Pose pose;
+    pose.posX_ = position.x_;
+    pose.posY_ = position.y_;
+    pose.posZ_ = position.z_;
+    pose.quatX_ = rotation.x_;
+    pose.quatY_ = rotation.y_;
+    pose.quatZ_ = rotation.z_;
+    pose.quatW_ = rotation.w_;
+
+    pimpl_->processArPose(pose);
+}
+
 const map<string, double>&
 OptarClient::getStats() const
 {
@@ -193,13 +213,13 @@ OptarClient::Impl::processTexture(const Mat &img,
     runOrb(img, keypoints, descriptors, debugSaveImage);
 
     nKeypoints = keypoints.size();
-    
+
     if (keypoints.size())
     {
         if (keypointsOut)
         {
             *keypointsOut = (Point*)malloc(sizeof(Point)*keypoints.size());
-            
+
             int i = 0;
             double s = settings_.rawImageScaleDownF_;
             for (auto kp : keypoints)
@@ -208,9 +228,9 @@ OptarClient::Impl::processTexture(const Mat &img,
                 (*keypointsOut)[i++].y = int(kp.pt.y*s);
             }
         }
-        
+
         // - obtain camera pose
-        
+
         // - form an OPTAR-ROS message
         //   required data
         //      instance-time:
@@ -222,7 +242,7 @@ OptarClient::Impl::processTexture(const Mat &img,
         //          - descriptors
         //          - ARCore camera ROS frame ID <- ???
         //          - image time <- ROS time from NTP client
-        
+
         // - send message
     }
     else
@@ -237,18 +257,18 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
     profiling::start();
 
     Mat procImg;
-    
+
     double resizeF = 1./(double)settings_.rawImageScaleDownF_;
     resize(imgWrapper, procImg, Size(), resizeF, resizeF, INTER_AREA);
-    
+
     stats_["resize"] = profiling::snap<chrono::microseconds>();
-    
+
     cvtColor(procImg, procImg, COLOR_RGBA2GRAY);
     stats_["cvtColor"] = profiling::snap<chrono::microseconds>();
-    
+
     // Detect ORB features and compute descriptors.
     orb_->detectAndCompute(procImg, Mat(), keypoints, descriptors);
-    
+
     stats_["orbCompute"] = profiling::snap<chrono::microseconds>();
     stats_["orbKp"] = keypoints.size();
     stats_["optarProc"] = profiling::total<chrono::microseconds>();
@@ -257,7 +277,7 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
     {
         //DEBUG_SHOW(procImg);
     }
-    
+
 #if DEBUG
     if (settings_.showDebugImage_)
     {
@@ -278,9 +298,15 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
         }
     }
 #endif
-    
+
     OLOG_DEBUG("ORB completed in {} (total {}). keypoints {}",
                stats_["orbCompute"], stats_["optarProc"], stats_["orbKp"]);
+}
+
+void
+OptarClient::Impl::processArPose(const ros_components::ArPosePublisher::Pose &pose)
+{
+    arPosePublisher_->publishPose(pose);
 }
 
 void
@@ -290,4 +316,5 @@ OptarClient::Impl::setupRosComponents()
     RosClient::initRos(settings_.rosMasterUri_);
     heartbeatPublisher_ = RosClient::createHeartbeatPublisher(settings_.deviceId_);
     ntpClient_ = RosClient::createNtpClient();
+    arPosePublisher_ = RosClient::createPosePublisher(settings_.deviceId_, 30);
 }

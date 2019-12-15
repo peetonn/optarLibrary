@@ -10,6 +10,7 @@
 #include <ros/ros.h>
 #include <uuid/uuid.h>
 #include <std_msgs/String.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <thread>
 #include <numeric>
 #include <ctime>
@@ -32,6 +33,11 @@ std::string RosClient::TopicNameHeartbeat = "/optar/heartbeats";
 std::string RosClient::TopicNameCentroids = "/tracker/tracks_smoothed";
 std::string RosClient::TopicNameSkeletons = "/tracker/skeleton_tracks";
 std::string RosClient::TopicNameNtpChat = "/optar/ntp_chat";
+std::string RosClient::TopicNameComponentOptar = "optar";
+std::string RosClient::TopicNameComponentPose = "pose";
+std::string RosClient::TopicNameComponentFeatures = "features";
+std::string RosClient::TopicNameComponentCamera = "camera";
+std::string RosClient::TopicNameComponentCameraFrame = "_camera_frame";
 
 //******************************************************************************
 void
@@ -80,10 +86,22 @@ RosClient::createNtpClient()
     return make_shared<RosNtpClient>(RosNodeHandle, ""); // device id is not used
 }
 
+shared_ptr<ArPosePublisher>
+RosClient::createPosePublisher(std::string deviceId, double rate)
+{
+    return make_shared<ArPosePublisher>(RosNodeHandle, deviceId, rate);
+}
+
 RosClient::RosClient(shared_ptr<NodeHandle> nh,string deviceId)
 : nodeHandle_(nh)
 , deviceId_(deviceId)
 {}
+
+string
+RosClient::getRosTfFrame() const
+{
+    return deviceId_ + "__world_filtered";
+}
 
 //******************************************************************************
 HeartbeatPublisher::HeartbeatPublisher(shared_ptr<NodeHandle> nh,
@@ -119,7 +137,6 @@ RosNtpClient::RosNtpClient(shared_ptr<NodeHandle> nh, string deviceId)
 , subscriber_(nodeHandle_->subscribe(RosClient::TopicNameNtpChat, 1,
     &RosNtpClient::onNtpMessage, this))
 , timer_(nodeHandle_->createTimer(ros::Duration(NTP_SYNC_INTERVAL), &RosNtpClient::onTimerFire, this))
-, lastRequestTsMs_(0)
 {}
 
 RosNtpClient::~RosNtpClient()
@@ -182,9 +199,57 @@ RosNtpClient::sendRequest()
 
     publisher_.publish(request);
     lastRequestId_ = request->id;
-    lastRequestTsMs_ = clock::millisecondTimestamp();
 
     OLOG_DEBUG("Sent NTP request: id {}", lastRequestId_);
+}
+
+//******************************************************************************
+ArPosePublisher::ArPosePublisher(shared_ptr<NodeHandle> nh, string deviceId,
+                                 double publishRate)
+: RosClient(nh, deviceId)
+, publisher_(nodeHandle_->advertise<geometry_msgs::PoseStamped>(ArPosePublisher::getTopicName(deviceId), 10))
+, publishRate_(publishRate)
+, lastPublishTsMs_(0)
+{
+}
+
+ArPosePublisher::~ArPosePublisher() {}
+
+string
+ArPosePublisher::getTopicName(std::string deviceId)
+{
+    return RosClient::TopicNameComponentOptar + "/" +
+            deviceId + "/" +
+            RosClient::TopicNameComponentPose;
+}
+
+void
+ArPosePublisher::publishPose(const Pose& pose)
+{
+    int64_t now = clock::millisecondTimestamp();
+
+    if (double(now - lastPublishTsMs_) >= 1000./publishRate_)
+    {
+        using namespace geometry_msgs;
+        PoseStampedPtr msg(new PoseStamped);
+
+        msg->pose.position.x = pose.posX_;
+        msg->pose.position.y = pose.posY_;
+        msg->pose.position.z = pose.posZ_;
+        msg->pose.orientation.x = pose.quatX_;
+        msg->pose.orientation.y = pose.quatY_;
+        msg->pose.orientation.z = pose.quatZ_;
+        msg->pose.orientation.w = pose.quatW_;
+
+        msg->header.frame_id = getRosTfFrame();
+
+        publisher_.publish(msg);
+        lastPublishTsMs_ = now;
+
+        OLOG_DEBUG("Published AR pose: [{:.2f} {:.2f} {:.2f}] [{:.2f} {:.2f} {:.2f} {:.2f}]",
+            pose.posX_, pose.posY_, pose.posZ_,
+            pose.quatX_, pose.quatY_, pose.quatZ_, pose.quatW_);
+    }
 }
 
 //******************************************************************************

@@ -40,6 +40,14 @@ public:
         int x, y;
     } Point;
 
+    typedef struct _Vector3 {
+        float x_,y_,z_;
+    } Vector3;
+
+    typedef struct _Vector4 {
+        float x_,y_,z_,w_;
+    } Vector4;
+
     OptarClient(const Settings& settings);
     ~OptarClient();
 
@@ -70,6 +78,14 @@ public:
                         int &nKeyPoints,
                         Point **keyPoints = nullptr,
                         bool debugSaveImage = false);
+
+    /**
+     * Processes AR pose and pubblishes it in a ROS topic.
+     * This also monitors pose and detects changes to it made by AR framework.
+     * @param position Position of the pose represented using a point in 3D space
+     * @param rotation Rotation of the pose represented using a quaternion
+     */
+    void processArPose(const Vector3 &position, const Vector4 &rotation);
 
     const std::map<std::string, double>& getStats() const;
 
