@@ -100,7 +100,7 @@ RosClient::RosClient(shared_ptr<NodeHandle> nh,string deviceId)
 string
 RosClient::getRosTfFrame() const
 {
-    return deviceId_ + "__world_filtered";
+    return deviceId_ + "_world_filtered";
 }
 
 //******************************************************************************
