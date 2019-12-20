@@ -7,13 +7,15 @@
 
 #include "ros-client.hpp"
 
-#include <ros/ros.h>
+#include <ctime>
+#include <numeric>
+#include <thread>
+
+#include <opencv2/imgcodecs.hpp>
 #include <uuid/uuid.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <thread>
-#include <numeric>
-#include <ctime>
+#include <opt_msgs/ArcoreCameraFeatures.h>
 
 #include "../logging.hpp"
 #include "../utils/clock.hpp"
@@ -22,6 +24,8 @@ using namespace std;
 using namespace optar;
 using namespace optar::ros_components;
 using namespace ros;
+
+#define ROS_PUBLISHER_QSIZE 10
 
 bool RunRos = false;
 thread RosThread;
@@ -92,6 +96,12 @@ RosClient::createPosePublisher(std::string deviceId, double rate)
     return make_shared<ArPosePublisher>(RosNodeHandle, deviceId, rate);
 }
 
+shared_ptr<OptarCameraPublisher>
+RosClient::createOptarPublisher(std::string deviceId)
+{
+    return make_shared<OptarCameraPublisher>(RosNodeHandle, deviceId);
+}
+
 RosClient::RosClient(shared_ptr<NodeHandle> nh,string deviceId)
 : nodeHandle_(nh)
 , deviceId_(deviceId)
@@ -101,6 +111,12 @@ string
 RosClient::getRosTfFrame() const
 {
     return deviceId_ + "_world_filtered";
+}
+
+string
+RosClient::getCameraRosFrame() const
+{
+    return deviceId_ + RosClient::TopicNameComponentCameraFrame;
 }
 
 //******************************************************************************
@@ -133,7 +149,7 @@ HeartbeatPublisher::onTimerFire(const ros::TimerEvent& event)
 #define NTP_TIME_DIFF_QSIZE 100
 RosNtpClient::RosNtpClient(shared_ptr<NodeHandle> nh, string deviceId)
 : RosClient(nh, deviceId)
-, publisher_(nodeHandle_->advertise<opt_msgs::OptarNtpMessage>(RosClient::TopicNameNtpChat, 10))
+, publisher_(nodeHandle_->advertise<opt_msgs::OptarNtpMessage>(RosClient::TopicNameNtpChat, ROS_PUBLISHER_QSIZE))
 , subscriber_(nodeHandle_->subscribe(RosClient::TopicNameNtpChat, 1,
     &RosNtpClient::onNtpMessage, this))
 , timer_(nodeHandle_->createTimer(ros::Duration(NTP_SYNC_INTERVAL), &RosNtpClient::onTimerFire, this))
@@ -147,6 +163,16 @@ RosNtpClient::getSyncTimeUsec() const
 {
     int64_t nowUsec = Time::now().toNSec()/1000;
     return nowUsec + estimatedTimeDiffUsec_;
+}
+
+ros::Time
+RosNtpClient::getSyncTime() const
+{
+    int64_t syncTimeUsec = getSyncTimeUsec();
+    int64_t sec = (syncTimeUsec / 1000000);
+    int64_t nsec = (syncTimeUsec % 1000000)*1000;
+
+    return ros::Time(int32_t(sec), int32_t(nsec));
 }
 
 void
@@ -207,7 +233,7 @@ RosNtpClient::sendRequest()
 ArPosePublisher::ArPosePublisher(shared_ptr<NodeHandle> nh, string deviceId,
                                  double publishRate)
 : RosClient(nh, deviceId)
-, publisher_(nodeHandle_->advertise<geometry_msgs::PoseStamped>(ArPosePublisher::getTopicName(deviceId), 10))
+, publisher_(nodeHandle_->advertise<geometry_msgs::PoseStamped>(ArPosePublisher::getTopicName(deviceId), ROS_PUBLISHER_QSIZE))
 , publishRate_(publishRate)
 , lastPublishTsMs_(0)
 {
@@ -227,19 +253,20 @@ void
 ArPosePublisher::publishPose(const Pose& pose)
 {
     int64_t now = clock::millisecondTimestamp();
+    lastPose_ = pose;
 
     if (double(now - lastPublishTsMs_) >= 1000./publishRate_)
     {
         using namespace geometry_msgs;
         PoseStampedPtr msg(new PoseStamped);
 
-        msg->pose.position.x = pose.posX_;
-        msg->pose.position.y = pose.posY_;
-        msg->pose.position.z = pose.posZ_;
-        msg->pose.orientation.x = pose.quatX_;
-        msg->pose.orientation.y = pose.quatY_;
-        msg->pose.orientation.z = pose.quatZ_;
-        msg->pose.orientation.w = pose.quatW_;
+        msg->pose.position.x = pose.position_.x_;
+        msg->pose.position.y = pose.position_.y_;
+        msg->pose.position.z = pose.position_.z_;
+        msg->pose.orientation.x = pose.rotation_.x_;
+        msg->pose.orientation.y = pose.rotation_.y_;
+        msg->pose.orientation.z = pose.rotation_.z_;
+        msg->pose.orientation.w = pose.rotation_.w_;
 
         msg->header.frame_id = getRosTfFrame();
 
@@ -247,9 +274,110 @@ ArPosePublisher::publishPose(const Pose& pose)
         lastPublishTsMs_ = now;
 
         OLOG_DEBUG("Published AR pose: [{:.2f} {:.2f} {:.2f}] [{:.2f} {:.2f} {:.2f} {:.2f}]",
-            pose.posX_, pose.posY_, pose.posZ_,
-            pose.quatX_, pose.quatY_, pose.quatZ_, pose.quatW_);
+            pose.position_.x_, pose.position_.y_, pose.position_.z_,
+            pose.rotation_.x_, pose.rotation_.y_, pose.rotation_.z_, pose.rotation_.w_);
     }
+}
+
+//******************************************************************************
+string
+OptarCameraPublisher::getTopicName(string deviceId)
+{
+    return RosClient::TopicNameComponentOptar + "/" +
+            deviceId + "/" +
+            RosClient::TopicNameComponentFeatures;
+}
+
+string
+OptarCameraPublisher::getDebugTopicName(string deviceId)
+{
+    return RosClient::TopicNameComponentOptar + "/" +
+            deviceId + "/debug";
+}
+
+OptarCameraPublisher::OptarCameraPublisher(shared_ptr<NodeHandle> nh, string deviceId)
+: RosClient(nh, deviceId)
+, lastPublishTsMs_(0)
+, publisher_(nodeHandle_->advertise<opt_msgs::ArcoreCameraFeatures>(OptarCameraPublisher::getTopicName(deviceId), ROS_PUBLISHER_QSIZE))
+, debugPublisher_(nodeHandle_->advertise<sensor_msgs::CompressedImage>(OptarCameraPublisher::getDebugTopicName(deviceId)+"/image/compressed", 1))
+{
+}
+
+OptarCameraPublisher::~OptarCameraPublisher()
+{
+}
+
+void
+OptarCameraPublisher::publish(ros::Time imageTime,
+                              const Pose& cameraPose,
+                              const CameraIntrinsics& cameraIntrinsics,
+                              const cv::Mat& descriptors,
+                              const vector<cv::KeyPoint>& keyPoints,
+                              const cv::Mat& debugImage)
+{
+    using namespace opt_msgs;
+    ArcoreCameraFeaturesPtr msg(new ArcoreCameraFeatures);
+
+    // msg->header.Update();
+    msg->header.stamp = imageTime;
+    msg->header.frame_id = getCameraRosFrame();
+
+    msg->mobileFramePose.position.x = cameraPose.position_.x_;
+    msg->mobileFramePose.position.y = cameraPose.position_.y_;
+    msg->mobileFramePose.position.z = cameraPose.position_.z_;
+    msg->mobileFramePose.orientation.x = cameraPose.rotation_.x_;
+    msg->mobileFramePose.orientation.y = cameraPose.rotation_.y_;
+    msg->mobileFramePose.orientation.z = cameraPose.rotation_.z_;
+    msg->mobileFramePose.orientation.w = cameraPose.rotation_.w_;
+
+    msg->focal_length_x_px = cameraIntrinsics.focalLengthX_;
+    msg->focal_length_y_px = cameraIntrinsics.focalLengthY_;
+    msg->image_width_px = cameraIntrinsics.imageWidth_;
+    msg->image_height_px = cameraIntrinsics.imageHeight_;
+    msg->principal_point_x_px = cameraIntrinsics.principalPointX_;
+    msg->principal_point_y_px = cameraIntrinsics.principalPointY_;
+
+    msg->deviceId = deviceId_;
+
+    msg->descriptors_mat_data = vector<unsigned char>(descriptors.datastart,
+                                                      descriptors.dataend);
+    msg->descriptors_mat_cols = descriptors.cols;
+    msg->descriptors_mat_rows = descriptors.rows;
+    msg->descriptors_mat_type = descriptors.type();
+
+    for (auto &kp:keyPoints)
+    {
+        KeyPoint kpRos;
+        kpRos.x_pos = kp.pt.x;
+        kpRos.y_pos = kp.pt.y;
+        kpRos.angle = kp.angle;
+        kpRos.class_id = kp.class_id;
+        kpRos.octave = kp.octave;
+        kpRos.response = kp.response;
+        kpRos.size = kp.size;
+
+        msg->keypoints.push_back(kpRos);
+    }
+
+    msg->image.header = msg->header;
+    msg->image.format = "jpg";
+
+    if (debugImage.total())
+    {
+        using namespace sensor_msgs;
+        vector<unsigned char> jpgData;
+        cv::imencode(".jpg", debugImage, jpgData);
+        msg->image.data = jpgData;
+
+        // CompressedImage imgMsg;
+        // imgMsg.header = msg->header;
+        // imgMsg.format = "jpg";
+        // imgMsg.data = jpgData;
+        //
+        // debugPublisher_.publish(imgMsg);
+    }
+
+    publisher_.publish(msg);
 }
 
 //******************************************************************************

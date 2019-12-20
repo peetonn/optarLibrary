@@ -9,6 +9,7 @@
 #define __optar_hpp__
 
 #include "config.hpp"
+#include "types.hpp"
 
 #include <map>
 #include <memory>
@@ -23,31 +24,6 @@ void registerLogCallback(LogCallback clbck);
 
 class OptarClient {
 public:
-    typedef struct _Settings {
-        int rawImageScaleDownF_ = 2; // scale down factor for raw image
-        int orbMaxPoints_ = 1000;
-        int orbLevelsNumber_ = 10;
-        double orbScaleFactor_ = 1.18f;
-        double targetFps_ = 30;
-        bool showDebugImage_ = false, sendDebugImage_ = false;
-        const char* rosMasterUri_;
-        const char* deviceId_;
-
-        const char* toString();
-    } Settings;
-
-    typedef struct _Point {
-        int x, y;
-    } Point;
-
-    typedef struct _Vector3 {
-        float x_,y_,z_;
-    } Vector3;
-
-    typedef struct _Vector4 {
-        float x_,y_,z_,w_;
-    } Vector4;
-
     OptarClient(const Settings& settings);
     ~OptarClient();
 
@@ -61,8 +37,9 @@ public:
      */
     void processTexture(int w, int h, const void *rgbaData,
                         int &nKeyPoints,
-                        Point **keyPoints = nullptr,
-                        bool debugSaveImage = false);
+                        CameraIntrinsics cameraIntrinsics,
+                        bool debugSaveImage = false,
+                        Point2D **keyPoints = nullptr);
 
     /**
      * Runs OPTAR algorithms on the texture and sends results to ROS server.
@@ -76,8 +53,9 @@ public:
     void processTexture(int w, int h, int yStride,
                         const void *yuvData,
                         int &nKeyPoints,
-                        Point **keyPoints = nullptr,
-                        bool debugSaveImage = false);
+                        CameraIntrinsics cameraIntrinsics,
+                        bool debugSaveImage = false,
+                        Point2D **keyPoints = nullptr);
 
     /**
      * Processes AR pose and pubblishes it in a ROS topic.
@@ -85,7 +63,7 @@ public:
      * @param position Position of the pose represented using a point in 3D space
      * @param rotation Rotation of the pose represented using a quaternion
      */
-    void processArPose(const Vector3 &position, const Vector4 &rotation);
+    void processArPose(const Pose& pose);
 
     const std::map<std::string, double>& getStats() const;
 

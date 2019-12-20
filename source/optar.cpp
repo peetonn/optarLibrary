@@ -14,8 +14,10 @@
 #include "config.hpp"
 #include "logging.hpp"
 #include "ros/ros-client.hpp"
+#include "utils/clock.hpp"
 
 #define DEBUG_SHOW(img)
+#define DEBUG_IMG_WIDTH 200.
 
 #if DEBUG
 
@@ -81,10 +83,12 @@ void registerLogCallback(LogCallback clbck)
 //******************************************************************************
 class OptarClient::Impl : public enable_shared_from_this<OptarClient::Impl> {
 public:
-    Impl(const OptarClient::Settings &settings)
+    Impl(const Settings &settings)
     : settings_(settings)
     , orb_(ORB::create(settings_.orbMaxPoints_, settings_.orbScaleFactor_,
                        settings_.orbLevelsNumber_))
+    , rateThrottle_(1) //60)
+    , lastRunTsMs_(0)
     {
         setupRosComponents();
     }
@@ -99,9 +103,11 @@ public:
     }
 
     void processTexture(const Mat &img,
-                        int &nKeypoints, OptarClient::Point **keypointsOut,
+                        int &nKeypoints,
+                        CameraIntrinsics cameraIntrinsics,
+                        Point2D **keypointsOut,
                         bool debugSaveImage);
-    void processArPose(const ros_components::ArPosePublisher::Pose &pose);
+    void processArPose(const Pose &pose);
 
     const map<string, double>& getStats() const
     {
@@ -109,44 +115,26 @@ public:
     }
 
 private:
-    OptarClient::Settings settings_;
+    Settings settings_;
     map<string, double> stats_;
     Ptr<Feature2D> orb_;
+    double rateThrottle_;
+    int64_t lastRunTsMs_;
 
     // ROS components
     shared_ptr<ros_components::HeartbeatPublisher> heartbeatPublisher_;
     shared_ptr<ros_components::RosNtpClient> ntpClient_;
     shared_ptr<ros_components::ArPosePublisher> arPosePublisher_;
+    shared_ptr<ros_components::OptarCameraPublisher> featuresPublisher_;
 
     void runOrb(const Mat &img,
                 vector<KeyPoint> &keypoints, Mat &descriptors,
-                bool debugSaveImage);
+                bool debugSaveImage,
+                Mat &debugImage);
     void setupRosComponents();
 };
 
 //******************************************************************************
-const char*
-OptarClient::_Settings::toString()
-{
-    stringstream ss;
-    ss
-    << "img scale down " << rawImageScaleDownF_
-    << " ORB max points " << orbMaxPoints_
-    << " ORB levels " << orbLevelsNumber_
-    << " ORB scale " << orbScaleFactor_
-    << " target FPS " << targetFps_
-    << " show debug img " << showDebugImage_
-    << " send debug img " << sendDebugImage_
-    << " ROS master URI " << rosMasterUri_
-    << " device ID " << deviceId_;
-
-    static char buf[1024];
-    memset(buf,0,1024);
-    memcpy(buf, ss.str().c_str(), ss.str().size());
-
-    return buf;
-}
-
 OptarClient::OptarClient(const Settings& settings)
 : pimpl_(make_shared<OptarClient::Impl>(settings))
 {
@@ -157,41 +145,34 @@ OptarClient::~OptarClient(){}
 
 void
 OptarClient::processTexture(int w, int h, const void *rgbaData,
-                            int &nKeypoints, OptarClient::Point **keypointsOut,
-                            bool debugSaveImage)
+                            int &nKeypoints,
+                            CameraIntrinsics cameraIntrinsics,
+                            bool debugSaveImage,
+                            Point2D **keypointsOut)
 {
     Mat imgWrapper = Mat(h,w, CV_8UC4, const_cast<void*>(rgbaData));
-    pimpl_->processTexture(imgWrapper, nKeypoints, keypointsOut, debugSaveImage);
+    pimpl_->processTexture(imgWrapper, nKeypoints, cameraIntrinsics, keypointsOut, debugSaveImage);
 }
 
 void
 OptarClient::processTexture(int w, int h, int yStride,
                             const void *yuvData,
                             int &nKeyPoints,
-                            Point **keyPoints,
-                            bool debugSaveImage)
+                            CameraIntrinsics cameraIntrinsics,
+                            bool debugSaveImage,
+                            Point2D **keyPoints)
 {
     Mat imgYV12 = Mat(h * 3/2, w, CV_8UC1, const_cast<void*>(yuvData));
     Mat imgDest;
 //    cvtColor(imgYV12, imgDest, COLOR_YUV2GRAY_YV12);
 //    cvtColor(imgYV12, imgDest, COLOR_YUV2GRAY_Y422);
     cvtColor(imgYV12, imgDest, COLOR_YUV2RGBA_I420 );
-    pimpl_->processTexture(imgDest, nKeyPoints, keyPoints, debugSaveImage);
+    pimpl_->processTexture(imgDest, nKeyPoints, cameraIntrinsics, keyPoints, debugSaveImage);
 }
 
 void
-OptarClient::processArPose(const Vector3 &position, const Vector4 &rotation)
+OptarClient::processArPose(const Pose &pose)
 {
-    using namespace ros_components;
-    ArPosePublisher::Pose pose;
-    pose.posX_ = position.x_;
-    pose.posY_ = position.y_;
-    pose.posZ_ = position.z_;
-    pose.quatX_ = rotation.x_;
-    pose.quatY_ = rotation.y_;
-    pose.quatZ_ = rotation.z_;
-    pose.quatW_ = rotation.w_;
-
     pimpl_->processArPose(pose);
 }
 
@@ -204,13 +185,24 @@ OptarClient::getStats() const
 //******************************************************************************
 void
 OptarClient::Impl::processTexture(const Mat &img,
-                                  int &nKeypoints, OptarClient::Point **keypointsOut,
+                                  int &nKeypoints,
+                                  CameraIntrinsics cameraIntrinsics,
+                                  Point2D **keypointsOut,
                                   bool debugSaveImage)
 {
+    // throttle processing
+    int64_t now = clock::millisecondTimestamp();
+
+    if (now - lastRunTsMs_ < 1000./rateThrottle_)
+        return;
+
+    lastRunTsMs_ = now;
+
     // - compute ORB descriptors
     vector<KeyPoint> keypoints;
     Mat descriptors;
-    runOrb(img, keypoints, descriptors, debugSaveImage);
+    Mat debugImage;
+    runOrb(img, keypoints, descriptors, debugSaveImage, debugImage);
 
     nKeypoints = keypoints.size();
 
@@ -218,32 +210,25 @@ OptarClient::Impl::processTexture(const Mat &img,
     {
         if (keypointsOut)
         {
-            *keypointsOut = (Point*)malloc(sizeof(Point)*keypoints.size());
+            *keypointsOut = (Point2D*)malloc(sizeof(Point2D)*keypoints.size());
 
             int i = 0;
             double s = settings_.rawImageScaleDownF_;
             for (auto kp : keypoints)
             {
-                (*keypointsOut)[i].x = int(kp.pt.x*s);
-                (*keypointsOut)[i++].y = int(kp.pt.y*s);
+                (*keypointsOut)[i].x_ = (kp.pt.x*s);
+                (*keypointsOut)[i++].y_ = (kp.pt.y*s);
             }
         }
 
-        // - obtain camera pose
-
-        // - form an OPTAR-ROS message
-        //   required data
-        //      instance-time:
-        //          - device ID <- ???
-        //          - camera intrinsics <- GoogleARCore.Frame.CameraImage.ImageIntrinsics
-        //      frame-time:
-        //          - camera pose <- from PoseManager or current GoogleARCore.Frame.Pose
-        //          - keypoints
-        //          - descriptors
-        //          - ARCore camera ROS frame ID <- ???
-        //          - image time <- ROS time from NTP client
-
-        // - send message
+        cameraIntrinsics.imageWidth_ /= settings_.rawImageScaleDownF_;
+        cameraIntrinsics.imageHeight_ /= settings_.rawImageScaleDownF_;
+        featuresPublisher_->publish(ntpClient_->getSyncTime(),
+                                    arPosePublisher_->getLastPose(),
+                                    cameraIntrinsics,
+                                    descriptors,
+                                    keypoints,
+                                    debugImage);
     }
     else
         OLOG_DEBUG("No image keypoints found. Skip frame");
@@ -252,7 +237,8 @@ OptarClient::Impl::processTexture(const Mat &img,
 void
 OptarClient::Impl::runOrb(const Mat &imgWrapper,
                           vector<KeyPoint> &keypoints, Mat &descriptors,
-                          bool debugSaveImage)
+                          bool debugSaveImage,
+                          Mat &debugImage)
 {
     profiling::start();
 
@@ -279,23 +265,20 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
     }
 
 #if DEBUG
-    if (settings_.showDebugImage_)
+    if (debugSaveImage)
     {
         Mat kpImage;
         drawKeypoints(procImg, keypoints, kpImage);
-        //DEBUG_SHOW(kpImage);
-        if (debugSaveImage)
+
+        if (kpImage.cols)
         {
-            bool r = imwrite("/storage/emulated/0/Pictures/keypoints.jpg", kpImage);
-            if (r)
-            {
-                OLOG_DEBUG("Saved debug image keypoints.jpg");
-            }
-            else
-            {
-                OLOG_DEBUG("Couldn't save debug image");
-            }
+            debugImage = Mat(Size(DEBUG_IMG_WIDTH ,
+                                  DEBUG_IMG_WIDTH / (float)kpImage.cols * (float)kpImage.rows),
+                             kpImage.type());
+
+            resize(kpImage, debugImage, debugImage.size(), 0, 0);
         }
+        //DEBUG_SHOW(kpImage);
     }
 #endif
 
@@ -304,7 +287,7 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
 }
 
 void
-OptarClient::Impl::processArPose(const ros_components::ArPosePublisher::Pose &pose)
+OptarClient::Impl::processArPose(const Pose &pose)
 {
     arPosePublisher_->publishPose(pose);
 }
@@ -317,4 +300,5 @@ OptarClient::Impl::setupRosComponents()
     heartbeatPublisher_ = RosClient::createHeartbeatPublisher(settings_.deviceId_);
     ntpClient_ = RosClient::createNtpClient();
     arPosePublisher_ = RosClient::createPosePublisher(settings_.deviceId_, 30);
+    featuresPublisher_ = RosClient::createOptarPublisher(settings_.deviceId_);
 }

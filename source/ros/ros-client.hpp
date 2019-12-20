@@ -10,8 +10,10 @@
 
 #include <memory>
 #include <ros/ros.h>
+#include <opencv2/features2d.hpp>
 
-#include "opt_msgs/OptarNtpMessage.h"
+#include <opt_msgs/OptarNtpMessage.h>
+#include "../types.hpp"
 
 namespace optar
 {
@@ -21,6 +23,7 @@ namespace ros_components
 class HeartbeatPublisher;
 class RosNtpClient;
 class ArPosePublisher;
+class OptarCameraPublisher;
 
 /**
  * This class is a wrapper for ROS communication behind OPTAR.
@@ -42,10 +45,12 @@ public:
     static std::shared_ptr<HeartbeatPublisher> createHeartbeatPublisher(std::string);
     static std::shared_ptr<RosNtpClient> createNtpClient();
     static std::shared_ptr<ArPosePublisher> createPosePublisher(std::string, double rate = 30.);
+    static std::shared_ptr<OptarCameraPublisher> createOptarPublisher(std::string);
 
     RosClient(std::shared_ptr<ros::NodeHandle> nh, std::string deviceId);
 
     std::string getRosTfFrame() const;
+    std::string getCameraRosFrame() const;
 
 protected:
     std::string deviceId_;
@@ -74,6 +79,9 @@ public:
     // returns current time (microseconds) adjusted for server sync
     int64_t getSyncTimeUsec() const;
 
+    // returns current ROS time adjusted for server sync
+    ros::Time getSyncTime() const;
+
 private:
     ros::Publisher publisher_;
     ros::Subscriber subscriber_;
@@ -90,26 +98,41 @@ private:
 
 class ArPosePublisher : public RosClient {
 public:
-    typedef struct _Pose {
-        float posX_, posY_, posZ_;
-        float quatX_, quatY_, quatZ_, quatW_;
-    } Pose;
-
     static std::string getTopicName(std::string deviceId);
 
     ArPosePublisher(std::shared_ptr<ros::NodeHandle>, std::string, double rate);
     ~ArPosePublisher();
 
     void publishPose(const Pose& pose);
+    const Pose& getLastPose() const { return lastPose_; };
 
 private:
+    Pose lastPose_;
     ros::Publisher publisher_;
     ros::Timer timer_;
     double publishRate_;
     int64_t lastPublishTsMs_;
-
 };
 
+class OptarCameraPublisher : public RosClient {
+public:
+    static std::string getTopicName(std::string deviceId);
+    static std::string getDebugTopicName(std::string deviceId);
+
+    OptarCameraPublisher(std::shared_ptr<ros::NodeHandle>, std::string);
+    ~OptarCameraPublisher();
+
+    void publish(ros::Time imageTime,
+                 const Pose& cameraPose,
+                 const CameraIntrinsics& cameraIntrinsics,
+                 const cv::Mat& descriptors,
+                 const std::vector<cv::KeyPoint>& keyPoints,
+                 const cv::Mat& debugImage);
+
+private:
+    ros::Publisher publisher_, debugPublisher_;
+    int64_t lastPublishTsMs_;
+};
 }
 }
 
