@@ -299,7 +299,6 @@ OptarCameraPublisher::OptarCameraPublisher(shared_ptr<NodeHandle> nh, string dev
 : RosClient(nh, deviceId)
 , lastPublishTsMs_(0)
 , publisher_(nodeHandle_->advertise<opt_msgs::ArcoreCameraFeatures>(OptarCameraPublisher::getTopicName(deviceId), ROS_PUBLISHER_QSIZE))
-, debugPublisher_(nodeHandle_->advertise<sensor_msgs::CompressedImage>(OptarCameraPublisher::getDebugTopicName(deviceId)+"/image/compressed", 1))
 {
 }
 
@@ -368,13 +367,6 @@ OptarCameraPublisher::publish(ros::Time imageTime,
         vector<unsigned char> jpgData;
         cv::imencode(".jpg", debugImage, jpgData);
         msg->image.data = jpgData;
-
-        // CompressedImage imgMsg;
-        // imgMsg.header = msg->header;
-        // imgMsg.format = "jpg";
-        // imgMsg.data = jpgData;
-        //
-        // debugPublisher_.publish(imgMsg);
     }
 
     publisher_.publish(msg);

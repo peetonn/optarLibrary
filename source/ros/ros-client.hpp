@@ -130,7 +130,7 @@ public:
                  const cv::Mat& debugImage);
 
 private:
-    ros::Publisher publisher_, debugPublisher_;
+    ros::Publisher publisher_;
     int64_t lastPublishTsMs_;
 };
 }
