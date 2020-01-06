@@ -59,7 +59,6 @@ inline int total() { return (int)duration_cast<CastT>(high_resolution_clock::now
 
 }
 
-
 const char* getLibraryVersion()
 {
     static char msg[256];
@@ -114,6 +113,8 @@ public:
         return stats_;
     }
 
+    Transform getLastTransform() const;
+
 private:
     Settings settings_;
     map<string, double> stats_;
@@ -126,12 +127,15 @@ private:
     shared_ptr<ros_components::RosNtpClient> ntpClient_;
     shared_ptr<ros_components::ArPosePublisher> arPosePublisher_;
     shared_ptr<ros_components::OptarCameraPublisher> featuresPublisher_;
+    shared_ptr<ros_components::TfListener> tfListener_;
 
     void runOrb(const Mat &img,
                 vector<KeyPoint> &keypoints, Mat &descriptors,
                 bool debugSaveImage,
                 Mat &debugImage);
     void setupRosComponents();
+    // called by TfListener whenever new transform (world -> AR) was retrieved
+    void onNewTransform(const Transform& t, int64_t tsUsec);
 };
 
 //******************************************************************************
@@ -174,6 +178,12 @@ void
 OptarClient::processArPose(const Pose &pose)
 {
     pimpl_->processArPose(pose);
+}
+
+Transform
+OptarClient::getLastTransform() const
+{
+    return pimpl_->getLastTransform();
 }
 
 const map<string, double>&
@@ -301,4 +311,26 @@ OptarClient::Impl::setupRosComponents()
     ntpClient_ = RosClient::createNtpClient();
     arPosePublisher_ = RosClient::createPosePublisher(settings_.deviceId_, 30);
     featuresPublisher_ = RosClient::createOptarPublisher(settings_.deviceId_);
+    tfListener_ = RosClient::createTfListener(settings_.deviceId_, bind(&OptarClient::Impl::onNewTransform, this, _1, _2));
+}
+
+void
+OptarClient::Impl::onNewTransform(const Transform& t, int64_t tsUsec)
+{
+    if (settings_.transformCallback_)
+    {
+        settings_.transformCallback_(t, tsUsec, settings_.userData_);
+    }
+}
+
+Transform
+OptarClient::Impl::getLastTransform() const
+{
+    Transform t;
+    memset(&t, 0, sizeof(t));
+
+    if (tfListener_)
+        t = tfListener_->getLastTransform();
+
+    return t;
 }

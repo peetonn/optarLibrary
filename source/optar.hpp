@@ -65,6 +65,14 @@ public:
      */
     void processArPose(const Pose& pose);
 
+    /**
+     * Returns last received transform (world -> AR tracking space) if available.
+     */
+    Transform getLastTransform() const;
+
+    /**
+     * Returns statistics dictionary.
+     */
     const std::map<std::string, double>& getStats() const;
 
 private:

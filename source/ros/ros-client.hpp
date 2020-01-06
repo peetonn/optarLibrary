@@ -9,9 +9,10 @@
 #define __ros_client_hpp__
 
 #include <memory>
-#include <ros/ros.h>
-#include <opencv2/features2d.hpp>
 
+#include <opencv2/features2d.hpp>
+#include <ros/ros.h>
+#include <tf/transform_listener.h>
 #include <opt_msgs/OptarNtpMessage.h>
 #include "../types.hpp"
 
@@ -24,6 +25,9 @@ class HeartbeatPublisher;
 class RosNtpClient;
 class ArPosePublisher;
 class OptarCameraPublisher;
+class TfListener;
+
+typedef std::function<void(const Transform&, int64_t tsUsec)> OnWorldToArTransform;
 
 /**
  * This class is a wrapper for ROS communication behind OPTAR.
@@ -34,6 +38,7 @@ public:
     static std::string TopicNameCentroids;
     static std::string TopicNameSkeletons;
     static std::string TopicNameNtpChat;
+    static std::string TopicNameComponentWorld;
     static std::string TopicNameComponentOptar;
     static std::string TopicNameComponentPose;
     static std::string TopicNameComponentFeatures;
@@ -46,6 +51,7 @@ public:
     static std::shared_ptr<RosNtpClient> createNtpClient();
     static std::shared_ptr<ArPosePublisher> createPosePublisher(std::string, double rate = 30.);
     static std::shared_ptr<OptarCameraPublisher> createOptarPublisher(std::string);
+    static std::shared_ptr<TfListener> createTfListener(std::string, OnWorldToArTransform);
 
     RosClient(std::shared_ptr<ros::NodeHandle> nh, std::string deviceId);
 
@@ -133,6 +139,27 @@ private:
     ros::Publisher publisher_;
     int64_t lastPublishTsMs_;
 };
+
+class TfListener : public RosClient {
+public:
+    TfListener(std::shared_ptr<ros::NodeHandle>, std::string, OnWorldToArTransform);
+    ~TfListener();
+
+    bool hasReceivedTf() const { return lastLookupTsMs_ != 0; }
+    int64_t getLastTransformTsUsec() const { return lastLookupTsMs_; }
+    Transform getLastTransform() const { return lastTransform_; };
+
+private:
+    double rate_;
+    int64_t lastLookupTsMs_;
+    ros::Timer timer_;
+    tf::TransformListener listener_;
+    Transform lastTransform_;
+    OnWorldToArTransform onTransform_;
+
+    void onTimerFire(const ros::TimerEvent& event);
+};
+
 }
 }
 

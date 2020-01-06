@@ -37,6 +37,7 @@ std::string RosClient::TopicNameHeartbeat = "/optar/heartbeats";
 std::string RosClient::TopicNameCentroids = "/tracker/tracks_smoothed";
 std::string RosClient::TopicNameSkeletons = "/tracker/skeleton_tracks";
 std::string RosClient::TopicNameNtpChat = "/optar/ntp_chat";
+std::string RosClient::TopicNameComponentWorld = "world";
 std::string RosClient::TopicNameComponentOptar = "optar";
 std::string RosClient::TopicNameComponentPose = "pose";
 std::string RosClient::TopicNameComponentFeatures = "features";
@@ -100,6 +101,12 @@ shared_ptr<OptarCameraPublisher>
 RosClient::createOptarPublisher(std::string deviceId)
 {
     return make_shared<OptarCameraPublisher>(RosNodeHandle, deviceId);
+}
+
+shared_ptr<TfListener>
+RosClient::createTfListener(std::string deviceId, OnWorldToArTransform clbck)
+{
+    return make_shared<TfListener>(RosNodeHandle, deviceId, clbck);
 }
 
 RosClient::RosClient(shared_ptr<NodeHandle> nh,string deviceId)
@@ -373,6 +380,51 @@ OptarCameraPublisher::publish(ros::Time imageTime,
 }
 
 //******************************************************************************
+#define TF_LISTENER_RATE 30.
+TfListener::TfListener(shared_ptr<NodeHandle> nh, string deviceId, OnWorldToArTransform clbck)
+: RosClient(nh, deviceId)
+, onTransform_(clbck)
+, rate_(TF_LISTENER_RATE)
+, lastLookupTsMs_(0)
+, timer_(nodeHandle_->createTimer(ros::Duration(1./TF_LISTENER_RATE), &TfListener::onTimerFire, this))
+{}
+
+TfListener::~TfListener()
+{}
+
+void
+TfListener::onTimerFire(const TimerEvent&)
+{
+    string targetFrame  = getRosTfFrame();
+    string sourceFrame = TopicNameComponentWorld;
+
+    try {
+        tf::StampedTransform transform;
+        listener_.lookupTransform(targetFrame, sourceFrame, ros::Time(0), transform);
+
+        int64_t tsUsec = transform.stamp_.toNSec() / 1000;
+        Transform t;
+
+        t.position_.x_ = transform.getOrigin().getX();
+        t.position_.y_ = transform.getOrigin().getY();
+        t.position_.z_ = transform.getOrigin().getZ();
+        t.rotation_.x_ = transform.getRotation().getAxis().getX();
+        t.rotation_.y_ = transform.getRotation().getAxis().getY();
+        t.rotation_.z_ = transform.getRotation().getAxis().getZ();
+        t.rotation_.w_ = transform.getRotation().getW();
+
+        onTransform_(t, tsUsec);
+
+        lastTransform_ = t;
+        lastLookupTsMs_ = clock::millisecondTimestamp();
+    }
+    catch (tf::TransformException ex) {
+        OLOG_ERROR("Caught exception looking up transform: {}",
+                   ex.what());
+    }
+}
+
+//******************************************************************************
 string getRandomUuid()
 {
     // uuid_t uuid;
@@ -394,7 +446,13 @@ void spinRos()
     RunRos = true;
     while (ros::ok())
     {
-        ros::spin();
+        try {
+            ros::spin();
+        }
+        catch (exception &e)
+        {
+            // do nothing
+        }
     }
 
     OLOG_INFO("ROS thread stopped.");
