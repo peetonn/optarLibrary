@@ -41,6 +41,19 @@ AC_CHECK_HEADERS([opencv2/opencv.hpp],
 
 ###############################
 # Check for <ROS client>
+HAVE_ROSCPP=0
+AC_CHECK_HEADERS([ros/ros.h],
+    [AC_CHECK_LIB([opencv], [ros::service::call], [
+        AM_CONDITIONAL([HAVE_ROSCPP], true)
+        HAVE_ROSCPP=1
+        AC_MSG_RESULT([yes])
+    ]
+    ,[
+        AM_CONDITIONAL([HAVE_ROSCPP], false)
+        HAVE_ROSCPP=0
+        AC_MSG_WARN([can't find roscpp lib])
+    ])])
+AC_DEFINE_UNQUOTED([HAVE_ROSCPP], $HAVE_ROSCPP, [1 if have roscpp.])
 
 ###############################
 # Check for spdlog
@@ -55,6 +68,7 @@ AC_LINK_IFELSE(
             HAVE_SPDLOG=1
             AC_MSG_RESULT([yes])
         ],[
+            AM_CONDITIONAL([HAVE_SPDLOG], false)
             HAVE_SPDLOG=0
             AC_MSG_WARN([can't find spdlog lib])
         ])
