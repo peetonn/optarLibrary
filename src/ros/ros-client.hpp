@@ -18,7 +18,7 @@
     #include <tf/transform_listener.h>
 #endif
 #include "opt_msgs/OptarNtpMessage.h"
-#include "../types.hpp"
+#include "types.hpp"
 
 namespace optar
 {

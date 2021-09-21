@@ -4,8 +4,9 @@ set(LIBRARY_NAME optar)
 project(${LIBRARY_NAME} VERSION 1.0.0)
 
 set(SOURCES optar.cpp ${CMAKE_SOURCE_DIR}/include/optar.hpp
+            ${CMAKE_SOURCE_DIR}/include/config.hpp
             logging.cpp logging.hpp
-            types.cpp types.hpp
+            types.cpp ${CMAKE_SOURCE_DIR}/include/types.hpp
             utils/clock.cpp utils/clock.hpp
             ros/ros-client.cpp ros/ros-client.hpp
             ros/opt_msgs/ArcoreCameraFeatures.h
@@ -36,8 +37,11 @@ target_include_directories(${LIBRARY_NAME}
 
 # add dependencies
 # spdlog
+#find_library(SPDLOG_LIBRARY spdlog REQUIRED NO_CMAKE_FIND_ROOT_PATH PATHS ${CMAKE_SOURCE_DIR}/thirdparty/spdlog/include)
 set(SPDLOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/spdlog/include)
+set(HAVE_SPDLOG 1)
 target_include_directories(${LIBRARY_NAME} SYSTEM PRIVATE ${SPDLOG_INCLUDE_DIR})
+#target_link_libraries(${LIBRARY_NAME} ${SPDLOG_LIBRARY})
 
 # opencv
 set(CMAKE_FRAMEWORK_PATH ${CMAKE_SOURCE_DIR}/thirdparty)
@@ -77,3 +81,6 @@ target_link_libraries(${LIBRARY_NAME} ${ROS_ROSGRAPH_MSGS_LIBRARY})
 
 find_library(ROS_TF2_MSGS_LIBRARY NAMES tf2_msgs REQUIRED NO_CMAKE_FIND_ROOT_PATH)
 target_link_libraries(${LIBRARY_NAME} ${ROS_TF2_MSGS_LIBRARY})
+
+# config
+configure_file(${CMAKE_SOURCE_DIR}/optar-config.hpp.in ${CMAKE_SOURCE_DIR}/include/config.hpp)
