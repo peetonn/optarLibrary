@@ -20,7 +20,7 @@ git clone https://github.com/peetonn/optarLibrary --recursive
 
 Before building optar library, prerequisites must be setup or built for the target platform. Depending on the platform, this process might get quite involved.
 
-### Android
+### Android (OUTDATED)
 
 For building library for the Android, one need to setup [Android ndk](https://developer.android.com/ndk).
 
@@ -43,7 +43,7 @@ docker/run.sh
 ./install.sh out
 ```
 
-The build process may take couple hours to complete. 
+The build process may take couple hours to complete.
 Once finished, `out` folder will contains compiled binaries of static libs that need to be packaged into one static archive.
 To do that, navigate to `optarLibrary/thirdparty` and follow these steps:
 
@@ -99,7 +99,7 @@ ndk-build
 
 ### iOS
 
-*TBD*
+Download everything from [here](https://drive.google.com/drive/folders/1vSUwomhf6c1z4rKpnr_vYnVB8_uRuYsx?usp=sharing) into *thirdparty* folder.
 
 ### macOS
 
@@ -124,7 +124,15 @@ ndk-build
 
 ### iOS
 
-*TBD*
+1. Generate Xcode project files:
+
+```
+mkdir build-ios
+cd build-ios
+cmake .. -GXcode -DCMAKE_SYSTEM_NAME=iOS
+```
+
+2. Open *optar.xcodeproj* and build the library.
 
 ### macOS
 
