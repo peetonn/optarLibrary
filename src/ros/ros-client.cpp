@@ -19,10 +19,7 @@
 
 #include "../logging.hpp"
 #include "../utils/clock.hpp"
-
-#if __APPLE__
-#include "objc/ros-ios.hpp"
-#endif
+#include "../helpers.hpp"
 
 using namespace std;
 using namespace optar;
@@ -62,7 +59,7 @@ RosClient::initRos(const std::string &rosMasterUri)
 
     static map<string,string> remappings;
     remappings["__master"] = rosMasterUri;
-    remappings["__log"] = getCrossPlatformWriteableFolder();
+    remappings["__log"] = helpers::getCrossPlatformWriteableFolder();
 
     OLOG_INFO("Initializing ROS (master URI {})...", rosMasterUri);
     ros::init(remappings, "optar_client",
@@ -472,25 +469,4 @@ void spinRos()
 
     OLOG_INFO("ROS thread stopped.");
     RunRos = false;
-}
-
-
-string optar::ros_components::getCrossPlatformWriteableFolder()
-{
-#if __ANDROID__
-    char cmdLine[512];
-    FILE *f = fopen("/proc/self/cmdline", "r");
-    if (f)
-    {
-        size_t c = fread(cmdLine, 512, 1, f);
-    }
-    else
-        DLOG_ERROR("FAILED TO READ /proc/self/cmdline");
-    
-    return "/data/data/"+string(cmdLine);
-#elif __APPLE__
-    return optar::ros_components::ios::getDeviceDocumentsDirectory();
-#else
-    return "";
-#endif
 }

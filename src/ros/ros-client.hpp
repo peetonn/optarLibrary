@@ -31,8 +31,6 @@ class ArPosePublisher;
 class OptarCameraPublisher;
 class TfListener;
 
-std::string getCrossPlatformWriteableFolder();
-
 typedef std::function<void(const Transform&, int64_t tsUsec)> OnWorldToArTransform;
 
 /**

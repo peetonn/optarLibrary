@@ -9,7 +9,7 @@
 #include <TargetConditionals.h>
 #import <Foundation/Foundation.h>
 
-std::string optar::ros_components::ios::getDeviceDocumentsDirectory()
+std::string optar::helpers::ios::getDeviceDocumentsDirectory()
 {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];

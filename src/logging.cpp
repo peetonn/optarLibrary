@@ -11,6 +11,9 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+
+#include "helpers.hpp"
 
 using namespace std;
 using namespace optar;
@@ -100,6 +103,13 @@ void initMainLogger()
         mainLogger = spdlog::basic_logger_mt<spdlog::async_factory>("optar", logFile);
     else
         mainLogger = spdlog::stdout_color_mt("optar");
+    
+    // add file sink by default for debug builds
+#if DEBUG
+    auto path = helpers::getCrossPlatformWriteableFolder()+"/optar.log";
+    auto sink = make_shared<spdlog::sinks::rotating_file_sink_mt>(path, 1024*1024, 5);
+    mainLogger->sinks().push_back(sink);
+#endif
 
     spdlog::flush_every(chrono::seconds(1));
     spdlog::set_default_logger(mainLogger);

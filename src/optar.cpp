@@ -13,6 +13,7 @@
 
 #include "config.hpp"
 #include "logging.hpp"
+#include "helpers.hpp"
 #include "ros/ros-client.hpp"
 #include "utils/clock.hpp"
 
@@ -78,8 +79,8 @@ const char* getRosLogDirectory()
 {
     static char path[256];
     memset(path, 0, 256);
-    memcpy(path, ros_components::getCrossPlatformWriteableFolder().c_str(),
-           ros_components::getCrossPlatformWriteableFolder().size());
+    memcpy(path, helpers::getCrossPlatformWriteableFolder().c_str(),
+           helpers::getCrossPlatformWriteableFolder().size());
     return path;
 }
 

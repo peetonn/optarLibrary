@@ -7,6 +7,7 @@ set(SOURCES optar.cpp ${CMAKE_SOURCE_DIR}/include/optar.hpp
             ${CMAKE_SOURCE_DIR}/include/config.hpp
             logging.cpp logging.hpp
             types.cpp ${CMAKE_SOURCE_DIR}/include/types.hpp
+            helpers.hpp helpers.cpp
             utils/clock.cpp utils/clock.hpp
             ros/ros-client.cpp ros/ros-client.hpp
             ros/opt_msgs/ArcoreCameraFeatures.h
@@ -24,6 +25,10 @@ endif()
 
 add_library(${LIBRARY_NAME} STATIC ${SOURCES})
 target_compile_features(${LIBRARY_NAME} PUBLIC cxx_std_17)
+
+add_compile_definitions(
+  $<$<CONFIG:DEBUG>:DEBUG>
+)
 
 #set(CMAKE_BUILD_TYPE Release)
 

@@ -12,7 +12,7 @@
 
 namespace optar
 {
-namespace ros_components
+namespace helpers
 {
 namespace ios
 {
