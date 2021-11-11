@@ -47,7 +47,8 @@ std::string RosClient::TopicNameComponentCameraFrame = "_camera_frame";
 
 //******************************************************************************
 void
-RosClient::initRos(const std::string &rosMasterUri)
+RosClient::initRos(const string &rosUri, const string &nodeId,
+                   const string &rosHostname, const string &rosIp)
 {
     if (RunRos)
     {
@@ -58,14 +59,28 @@ RosClient::initRos(const std::string &rosMasterUri)
     }
 
     static map<string,string> remappings;
-    remappings["__master"] = rosMasterUri;
     remappings["__log"] = helpers::getCrossPlatformWriteableFolder();
-
-    OLOG_INFO("Initializing ROS (master URI {})...", rosMasterUri);
-    ros::init(remappings, "optar_client",
-              ros::init_options::NoRosout |
-              ros::init_options::AnonymousName |
-              ros::init_options::NoSigintHandler);
+    
+    // if provided, __hostname takes precedence over __ip
+    if (rosHostname.size())
+        remappings["__hostname"] = rosHostname;
+    
+    if (rosIp.size())
+        remappings["__ip"] = rosIp;
+    
+    remappings["__master"] = (rosUri.size() ? rosUri : "http://" + rosIp + ":11311");
+    
+    string nodeName = "optar_client";
+    uint32_t options = ros::init_options::NoRosout |
+                       ros::init_options::NoSigintHandler;
+    if (!nodeId.size())
+        options |= ros::init_options::AnonymousName;
+    else
+        nodeName += "_" + nodeId;
+    
+    OLOG_INFO("Initializing ROS node (master URI {}, node {})...",
+              remappings["__master"], nodeName);
+    ros::init(remappings, nodeName, options);
 
     OLOG_INFO("Starting ROS node...");
     static once_flag onceFlag;;
@@ -392,26 +407,54 @@ OptarCameraPublisher::publish(ros::Time imageTime,
 #define TF_LISTENER_RATE 30.
 TfListener::TfListener(shared_ptr<NodeHandle> nh, string deviceId, OnWorldToArTransform clbck)
 : RosClient(nh, deviceId)
+, listener_(*nh)
 , onTransform_(clbck)
 , rate_(TF_LISTENER_RATE)
 , lastLookupTsMs_(0)
 , timer_(nodeHandle_->createTimer(ros::Duration(1./TF_LISTENER_RATE), &TfListener::onTimerFire, this))
 {
     OLOG_DEBUG("Tf listener started: device id {}", deviceId);
+    listener_.addTransformsChangedListener(bind(&TfListener::onNewTransformArrived, this));
 }
 
 TfListener::~TfListener()
 {}
 
 void
+TfListener::onNewTransformArrived()
+{
+    OLOG_DEBUG("New transform arrived");
+    
+    string targetFrame  = getRosTfFrame();
+    string sourceFrame = TopicNameComponentWorld;
+    
+    if (!listener_.frameExists(targetFrame))
+        OLOG_WARN("target frame {} does not exist", targetFrame);
+    if (!listener_.frameExists(sourceFrame))
+        OLOG_WARN("source frame {} does not exist", sourceFrame);
+    
+    if (!listener_.frameExists(targetFrame) || !listener_.frameExists(sourceFrame))
+        return ;
+    
+    OLOG_INFO("Required transforms are ready. Setting up timer for tf lookup");
+    timer_ = nodeHandle_->createTimer(ros::Duration(1./TF_LISTENER_RATE),
+                                      &TfListener::onTimerFire, this);
+}
+
+void
 TfListener::onTimerFire(const TimerEvent&)
 {
     string targetFrame  = getRosTfFrame();
     string sourceFrame = TopicNameComponentWorld;
-
+    
+    OLOG_DEBUG("TfListener all frames: {}",
+               listener_.allFramesAsString());
+    
     try {
+        ros::Time now = ros::Time::now();
         tf::StampedTransform transform;
-        listener_.lookupTransform(targetFrame, sourceFrame, ros::Time(0), transform);
+        listener_.waitForTransform(targetFrame, sourceFrame, ros::Time(0), ros::Duration(3.0));
+        listener_.lookupTransform(targetFrame, sourceFrame, now, transform);
 
         int64_t tsUsec = transform.stamp_.toNSec() / 1000;
         Transform t;

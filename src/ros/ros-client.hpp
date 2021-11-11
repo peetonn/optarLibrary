@@ -49,7 +49,10 @@ public:
     static std::string TopicNameComponentCamera;
     static std::string TopicNameComponentCameraFrame;
 
-    static void initRos(const std::string &rosMasterUri);
+    static void initRos(const std::string &rosUri,
+                        const std::string &nodeId = "",
+                        const std::string &rosHostname = "",
+                        const std::string &rosIp = "");
     static bool getIsRosThreadRunning();
     static std::shared_ptr<HeartbeatPublisher> createHeartbeatPublisher(std::string);
     static std::shared_ptr<RosNtpClient> createNtpClient();
@@ -161,6 +164,7 @@ private:
     Transform lastTransform_;
     OnWorldToArTransform onTransform_;
 
+    void onNewTransformArrived();
     void onTimerFire(const ros::TimerEvent& event);
 };
 

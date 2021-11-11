@@ -295,9 +295,21 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
         //DEBUG_SHOW(procImg);
     }
 
-#if DEBUG
+//#if DEBUG
     if (debugSaveImage)
     {
+//        Mat kpImage;
+//        drawKeypoints(procImg, keypoints, kpImage);
+
+        if (procImg.cols)
+        {
+            debugImage = Mat(Size(DEBUG_IMG_WIDTH ,
+                                  DEBUG_IMG_WIDTH / (float)procImg.cols * (float)procImg.rows),
+                             procImg.type());
+
+            resize(procImg, debugImage, debugImage.size(), 0, 0);
+        }
+#if 0
         Mat kpImage;
         drawKeypoints(procImg, keypoints, kpImage);
 
@@ -309,9 +321,10 @@ OptarClient::Impl::runOrb(const Mat &imgWrapper,
 
             resize(kpImage, debugImage, debugImage.size(), 0, 0);
         }
+#endif
         //DEBUG_SHOW(kpImage);
     }
-#endif
+//#endif
 
     OLOG_DEBUG("ORB completed in {} (total {}). keypoints {}",
                stats_["orbCompute"], stats_["optarProc"], stats_["orbKp"]);
@@ -328,7 +341,10 @@ void
 OptarClient::Impl::setupRosComponents()
 {
     using namespace ros_components;
-    RosClient::initRos(settings_.rosMasterUri_);
+    
+    RosClient::initRos(settings_.rosUri_, settings_.deviceId_,
+                       (settings_.rosHostname_ ? settings_.rosHostname_ : ""),
+                       (settings_.rosIp_ ? settings_.rosIp_ : ""));
     heartbeatPublisher_ = RosClient::createHeartbeatPublisher(settings_.deviceId_);
     ntpClient_ = RosClient::createNtpClient();
     arPosePublisher_ = RosClient::createPosePublisher(settings_.deviceId_, 30);

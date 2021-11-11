@@ -49,7 +49,9 @@ namespace optar
         double targetFps_ = 30;
         bool showDebugImage_ = false, sendDebugImage_ = false;
         bool orbTestMode_ = false; // ORB-only test mode: disables all ROS components
-        const char* rosMasterUri_;
+        const char* rosIp_;
+        const char* rosHostname_;
+        const char* rosUri_;
         const char* deviceId_;
         OnWorldToArTransform transformCallback_;
         void *userData_;

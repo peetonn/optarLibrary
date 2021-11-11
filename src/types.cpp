@@ -24,7 +24,9 @@ _Settings::toString()
     << " target FPS " << targetFps_
     << " show debug img " << showDebugImage_
     << " send debug img " << sendDebugImage_
-    << " ROS master URI " << rosMasterUri_
+    << " ROS master IP " << rosIp_
+    << " hostname " << rosHostname_
+    << " URI " << rosUri_
     << " device ID " << deviceId_;
 
     static char buf[1024];
