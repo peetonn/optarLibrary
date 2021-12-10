@@ -20,11 +20,8 @@
 
 #include <spdlog/spdlog.h>
 
-#define OLOG_TRACE SPDLOG_TRACE
-#define OLOG_DEBUG SPDLOG_DEBUG
-#define OLOG_INFO SPDLOG_INFO
-#define OLOG_WARN SPDLOG_WARN
-#define OLOG_ERROR SPDLOG_ERROR
+#define OPTAR_LOGGER_NAME "optar"
+#define OPTAR_LOGGER (optar::getLogger(OPTAR_LOGGER_NAME))
 
 #define OLOG_LOGGER_TRACE SPDLOG_LOGGER_TRACE
 #define OLOG_LOGGER_DEBUG SPDLOG_LOGGER_DEBUG
@@ -47,6 +44,12 @@ namespace optar {
     void flushLogger(std::string loggerName);
     void registerCallback(std::shared_ptr<helpers::logger>, helpers::LogCallback);
 }
+
+#define OLOG_TRACE(...) SPDLOG_LOGGER_TRACE(OPTAR_LOGGER, __VA_ARGS__)
+#define OLOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(OPTAR_LOGGER, __VA_ARGS__)
+#define OLOG_INFO(...)  SPDLOG_LOGGER_INFO(OPTAR_LOGGER, __VA_ARGS__)
+#define OLOG_WARN(...)  SPDLOG_LOGGER_WARN(OPTAR_LOGGER, __VA_ARGS__)
+#define OLOG_ERROR(...) SPDLOG_LOGGER_ERROR(OPTAR_LOGGER, __VA_ARGS__)
 
 #else
 

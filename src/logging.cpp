@@ -12,11 +12,14 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/base_sink.h>
+#include <spdlog/details/null_mutex.h>
+
+#include <mutex>
 
 #include "helpers.hpp"
 
 using namespace std;
-using namespace optar;
 
 #define DEFAULT_FORMAT "%E.%f [%12n] [%^%-8l%$] [thread %t] %!() : %v"
 
@@ -32,6 +35,9 @@ using namespace optar;
 #define LOG_FORMAT_ENV "OPTARLIB_LOG_FMT"
 #define LOG_FILE_ENV "OPTARLIB_LOG_FILE"
 
+namespace optar
+{
+
 shared_ptr<spdlog::logger> mainLogger;
 string logFile = "";
 string logLevel = "";
@@ -41,17 +47,14 @@ void initMainLogger();
 void initLogger(shared_ptr<helpers::logger>);
 
 // init logging upon library loading
-struct _LibInitializer {
-    _LibInitializer() {
+struct _OptarLogInitializer {
+    _OptarLogInitializer() {
         call_once(onceFlag, bind(initMainLogger));
     }
-} libInitializer = {};
+} optarLogInitializer = {};
 
-//******************************************************************************
 // callback sink implementation
 // @see https://github.com/gabime/spdlog/wiki/4.-Sinks#implementing-your-own-sink
-#include "spdlog/sinks/base_sink.h"
-
 template<typename Mutex>
 class CallbackSink : public spdlog::sinks::base_sink <Mutex>
 {
@@ -88,21 +91,18 @@ private:
     vector<string> msgs_;
 };
 
-#include "spdlog/details/null_mutex.h"
-#include <mutex>
 using CallbackSinkMt = CallbackSink<mutex>;
 using CallbackSinkSt = CallbackSink<spdlog::details::null_mutex>;
 
-//******************************************************************************
 void initMainLogger()
 {
     logLevel = getenv(LOG_LEVEL_ENV) ? string(getenv(LOG_LEVEL_ENV)) : "";
     logFile = getenv(LOG_FILE_ENV) ? string(getenv(LOG_FILE_ENV)) : "";
 
     if (logFile != "")
-        mainLogger = spdlog::basic_logger_mt<spdlog::async_factory>("optar", logFile);
+        mainLogger = spdlog::basic_logger_mt<spdlog::async_factory>(OPTAR_LOGGER_NAME, logFile);
     else
-        mainLogger = spdlog::stdout_color_mt("optar");
+        mainLogger = spdlog::stdout_color_mt(OPTAR_LOGGER_NAME);
     
     // add file sink by default for debug builds
 #if DEBUG
@@ -133,9 +133,6 @@ void initLogger(shared_ptr<helpers::logger> logger)
     logger->flush();
 }
 
-namespace optar
-{
-
 void newLogger(string loggerName)
 {
     shared_ptr<spdlog::logger> logger;
@@ -161,7 +158,8 @@ void flushLogger(string loggerName)
 
 void registerCallback(shared_ptr<helpers::logger> logger, helpers::LogCallback callback)
 {
-    logger->sinks().push_back(make_shared<CallbackSinkMt>(callback));
+    if (logger)
+        logger->sinks().push_back(make_shared<CallbackSinkMt>(callback));
 }
 
 }
